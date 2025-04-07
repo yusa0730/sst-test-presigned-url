@@ -4,6 +4,10 @@ phases:
     runtime-versions:
       nodejs: 22
     commands:
+      - curl https://get.volta.sh | bash
+      - export VOLTA_HOME=$HOME/.volta
+      - export PATH=$VOLTA_HOME/bin:$PATH
+      - volta install node@20.13.1
       - npm install -g pnpm@9.10.0
       - pnpm config set store-dir ~/.pnpm-store
       - node -v
