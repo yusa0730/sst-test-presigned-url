@@ -15,10 +15,8 @@ phases:
       - openssl rsa -pubout -in private_key.pem -out public_key.pem
       - ENCODED_PUBLIC_KEY=$(cat public_key.pem | awk '{printf "%s\\n", $0}')
       - echo ${ENCODED_PUBLIC_KEY}
-      - npx sst secret set ENCODED_KEY "$ENCODED_PUBLIC_KEY" --stage production
-      - npx sst secret set PRIVATE_KEY < private_key.pem --stage production
-      # - pnpm run secret ENCODED_KEY ${ENCODED_PUBLIC_KEY} --stage=production
-      # - pnpm run secret PRIVATE_KEY < ./private_key.pem --stage=production
+      - pnpm run secret:encodekey --stage=production
+      - pnpm run secret:private --stage=production
       - rm -f private_key.pem public_key.pem
       - pnpm run unlock --stage=production --print-logs
       - pnpm run refresh --stage=production --print-logs

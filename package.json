@@ -8,7 +8,8 @@
     "remove": "sst remove",
     "refresh": "sst refresh --stage=production",
     "unlock": "sst unlock",
-    "secret": "sst secret set",
+    "secret:encodekey": "sst secret set ENCODED_KEY $ENCODED_PUBLIC_KEY",
+    "secret:private": "sst secret set PRIVATE_KEY < ./private_key.pem",
     "init": "sst init",
     "typecheck": "tsc"
   },
