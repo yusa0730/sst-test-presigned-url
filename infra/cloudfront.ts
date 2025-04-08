@@ -47,7 +47,7 @@ const presignedUrlCdnBucket = $util
   });
 
 // cloudfront publickey登録
-const encodedKey = new sst.Secret("ENCODED_KEY");
+const encodedKey = new sst.Secret("ENCODED_PUBLIC_KEY");
 const presignedUrlPublicKey = new aws.cloudfront.PublicKey(
   `${infraConfigResources.idPrefix}-presigned-url-cdn-public-key-${$app.stage}`,
   {
