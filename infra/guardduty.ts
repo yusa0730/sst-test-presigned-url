@@ -3,9 +3,9 @@ import { s3Resources } from "./s3";
 
 // GuaruDuty用のIAMロール
 const presignedUrlGuarddutyIamRole = new aws.iam.Role(
-  `${infraConfigResources.idPrefix}-presigned-url-cdn-bucket-guardduty-service-role-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-cdn-bucket-guardduty-service-role-${$app.stage}`,
   {
-    name: `${infraConfigResources.idPrefix}-presigned-url-cdn-bucket-guardduty-service-role-${$app.stage}`,
+    name: `${infraConfigResources.idPrefix}-cdn-bucket-guardduty-service-role-${$app.stage}`,
     assumeRolePolicy: $jsonStringify({
       Version: "2012-10-17",
       Statement: [
@@ -20,7 +20,7 @@ const presignedUrlGuarddutyIamRole = new aws.iam.Role(
     }),
     inlinePolicies: [
       {
-        name: `${infraConfigResources.idPrefix}-presigned-url-cdn-bucket-guardduty-service-role-policy-${$app.stage}`,
+        name: `${infraConfigResources.idPrefix}-cdn-bucket-guardduty-service-role-policy-${$app.stage}`,
         policy: $jsonStringify({
           Version: "2012-10-17",
           Statement: [
