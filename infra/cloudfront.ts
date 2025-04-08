@@ -205,7 +205,7 @@ new aws.s3.BucketPolicy(
 
 // KMSキー
 const presignedUrlCdnBucketKms = new aws.kms.Key(
-  `${infraConfigResources.idPrefix}-cdn-bucket-kms-key-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-cdn-bucket-kms-key-test-${$app.stage}`,
   {
     description: `${infraConfigResources.idPrefix} presigned url cdn bucket kms key for ${$app.stage}`,
     policy: $jsonStringify({
