@@ -66,6 +66,7 @@ const encodedKey = await aws.secretsmanager.getSecretVersion({
 //   withDecryption: true, // 暗号化されている場合は復号化
 // }).then(param => param.value);
 console.log("====encoded key=====");
+console.log(public_key_secret);
 console.log(encodedKey.secretString);
 console.log("====encoded key=====");
 
