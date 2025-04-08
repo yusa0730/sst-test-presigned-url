@@ -18,7 +18,12 @@ phases:
       - openssl rsa -pubout -in private_key.pem -out public_key.pem
       - ENCODED_PUBLIC_KEY=$(cat public_key.pem | awk '{printf "%s\\n", $0}')
       - echo $ENCODED_PUBLIC_KEY
-      - sst secret set ENCODED_PUBLIC_KEY $ENCODED_PUBLIC_KEY --stage=production --print-logs
+      - aws ssm put-parameter \
+        --name "/sst-test/cloudfront/production/publicKey" \
+        --type "SecureString" \
+        --value "$ENCODED_PUBLIC_KEY" \
+        --overwrite
+      # - sst secret set ENCODED_PUBLIC_KEY $ENCODED_PUBLIC_KEY --stage=production --print-logs
       # - pnpm run secret:encodekey --stage=production --print-logs
       - pnpm run secret:private --stage=production --print-logs
       - rm -f private_key.pem public_key.pem

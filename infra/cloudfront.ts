@@ -47,13 +47,22 @@ const presignedUrlCdnBucket = $util
   });
 
 // cloudfront publickey登録
-const encodedKey = new sst.Secret("ENCODED_PUBLIC_KEY");
+// const encodedKey = new sst.Secret("ENCODED_PUBLIC_KEY");
+const encodedKey = await aws.ssm.getParameter({
+  name: "/sst-test/cloudfront/production/publicKey",
+  withDecryption: true
+})
+
+// const encodedPublicKey = await aws.ssm.getParameter({
+//   name: `/${infraConfigResouces.idPrefix}/encodedPublicKey`,
+//   withDecryption: true, // 暗号化されている場合は復号化
+// }).then(param => param.value);
 const presignedUrlPublicKey = new aws.cloudfront.PublicKey(
   `${infraConfigResources.idPrefix}-presigned-url-cdn-public-key-${$app.stage}`,
   {
     name: `${infraConfigResources.idPrefix}-presigned-url-cdn-public-key-${$app.stage}`,
     comment: `${infraConfigResources.idPrefix} presigned url cdn public key for ${$app.stage}`,
-    encodedKey: $resolve(encodedKey).apply((encodedKey) => encodedKey.value),
+    encodedKey: encodedKey.value,
   },
 );
 
