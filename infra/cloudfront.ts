@@ -48,17 +48,21 @@ const presignedUrlCdnResponseHeadersPolicy =
 
 // cloudfront publickey登録
 // const encodedKey = new sst.Secret("ENCODED_PUBLIC_KEY");
-const encodedKey = await aws.ssm.getParameter({
-  name: "/sst-test/cloudfront/production/publicKey",
-  withDecryption: true
-})
+// const encodedKey = await aws.ssm.getParameter({
+//   name: "/sst-test/cloudfront/production/publicKey",
+//   withDecryption: true
+// })
+
+const encodedKey = await aws.secretsmanager.getSecret({
+    name: "public_key",
+});
 
 // const encodedPublicKey = await aws.ssm.getParameter({
 //   name: `/${infraConfigResouces.idPrefix}/encodedPublicKey`,
 //   withDecryption: true, // 暗号化されている場合は復号化
 // }).then(param => param.value);
 console.log("====encoded key=====");
-console.log(encodedKey.value);
+console.log(encodedKey);
 console.log("====encoded key=====");
 
 const presignedUrlPublicKey = new aws.cloudfront.PublicKey(
