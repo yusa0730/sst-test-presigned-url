@@ -13,7 +13,10 @@ const presignedUrlCdnBucketKms = new aws.kms.Key(
           Action: ["kms:*"],
           Resource: ["*"],
           Principal: {
-            AWS: `arn:aws:iam::${infraConfigResources.awsAccountId}:root`,
+            AWS: [
+              `arn:aws:iam::${infraConfigResources.awsAccountId}:root`,
+              `arn:aws:iam::${infraConfigResources.awsAccountId}:role/service-role/codebuild-sst-test-hono-docker-service-role`,
+            ]
           },
         },
       ],

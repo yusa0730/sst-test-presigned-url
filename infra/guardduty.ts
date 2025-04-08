@@ -53,7 +53,7 @@ const presignedUrlGuardduty = new aws.guardduty.MalwareProtectionPlan(
     ],
     protectedResource: {
       s3Bucket: {
-        bucketName: s3Resources.presignedUrlCdnBucket.name,
+        bucketName: s3Resources.presignedUrlCdnBucket.bucketDomainName,
       },
     },
     tags: {
