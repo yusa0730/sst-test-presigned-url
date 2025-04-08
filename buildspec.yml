@@ -16,16 +16,15 @@ phases:
       - pnpm run unlock --stage=production --print-logs
       - openssl genrsa -out private_key.pem 2048
       - openssl rsa -pubout -in private_key.pem -out public_key.pem
-      - ENCODED_PUBLIC_KEY=$(cat public_key.pem | awk '{printf "%s\\n", $0}')
+      - ENCODED_PUBLIC_KEY=$(cat public_key.pem)
       - echo $ENCODED_PUBLIC_KEY
       # - set -x
-      # - aws ssm put-parameter --name "/sst-test/cloudfront/production/publicKey" --type "SecureString" --value $ENCODED_PUBLIC_KEY --overwrite
+      - aws ssm put-parameter --name "/sst-test/cloudfront/production/publicKey" --type "SecureString" --value $(cat public_key.pem) --overwrite
       # - set +x
       # - sst secret set ENCODED_PUBLIC_KEY $ENCODED_PUBLIC_KEY --stage=production --print-logs
       # - pnpm run secret:encodekey --stage=production --print-logs
       - pnpm run secret:private --stage=production --print-logs
       - rm -f private_key.pem public_key.pem
-      - pnpm run remove --stage=production --print-logs
       - pnpm run refresh --stage=production --print-logs
       - pnpm run deploy --stage=production --print-logs
 cache:
