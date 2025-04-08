@@ -192,69 +192,22 @@ new aws.s3.BucketPolicy(
   },
 );
 
-// presigned url bucketにオリジンアクセスの許可をする
-new aws.s3.BucketPolicy(
-  `${infraConfigResources.idPrefix}-cdn-bucket-policy-${$app.stage}`,
+// KMSキー
+const presignedUrlCdnBucketKms = new aws.kms.Key(
+  `${infraConfigResources.idPrefix}-cdn-bucket-kms-key-${$app.stage}`,
   {
-    bucket: presignedUrlCdnBucket.id,
+    description: `${infraConfigResources.idPrefix} presigned url cdn bucket kms key for ${$app.stage}`,
     policy: $jsonStringify({
       Version: "2012-10-17",
       Statement: [
         {
-          Effect: "Deny",
-          Principal: "*",
-          Action: "s3:*",
-          Resource: [
-            $interpolate`arn:aws:s3:::${presignedUrlCdnBucket.bucket}`,
-            $interpolate`arn:aws:s3:::${presignedUrlCdnBucket.bucket}/*`,
-          ],
-          Condition: {
-            Bool: {
-              "aws:SecureTransport": "false",
-            },
-          },
-        },
-        {
           Effect: "Allow",
-          Action: "s3:GetObject",
-          Resource: $interpolate`arn:aws:s3:::${presignedUrlCdnBucket.bucket}/*`,
+          Action: ["kms:*"],
+          Resource: ["*"],
           Principal: {
-            Service: "cloudfront.amazonaws.com",
-          },
-          Condition: {
-            StringEquals: {
-              "AWS:SourceArn": presignedUrlCdn.nodes.distribution.arn,
-            },
+            AWS: `arn:aws:iam::${infraConfigResources.awsAccountId}:root`,
           },
         },
-        {
-          Effect: "Allow",
-          Action: "s3:PutObject",
-          Resource: $interpolate`arn:aws:s3:::${presignedUrlCdnBucket.bucket}/*`,
-          Principal: {
-            Service: "cloudfront.amazonaws.com",
-          },
-          Condition: {
-            StringEquals: {
-              "AWS:SourceArn": presignedUrlCdn.nodes.distribution.arn,
-            },
-          },
-        },
-      ],
-    }),
-  },
-  {
-    dependsOn: [presignedUrlCdn],
-  },
-);
-
-new aws.kms.KeyPolicy(
-  `${infraConfigResources.idPrefix}-cdn-bucket-kms-key-policy-${$app.stage}`,
-  {
-    keyId: kmsResources.presignedUrlCdnBucketKms.id,
-    policy: JSON.stringify({
-      Id: `${infraConfigResources.idPrefix}-cdn-bucket-kms-key-policy-${$app.stage}`,
-      Statement: [
         {
           Action: ["kms:Decrypt", "kms:Encrypt", "kms:GenerateDataKey*"],
           Effect: "Allow",
@@ -269,12 +222,48 @@ new aws.kms.KeyPolicy(
               "AWS:SourceArn": presignedUrlCdn.nodes.distribution.arn,
             },
           },
-        },
+        }
       ],
-      Version: "2012-10-17",
     }),
   },
 );
+
+//KMSキーエイリアス
+const presignedUrlCdnBucketKmsAlias = new aws.kms.Alias(
+  `${infraConfigResources.idPrefix}-cdn-bucket-kms-key-alias-${$app.stage}`,
+  {
+    name: `alias/${infraConfigResources.idPrefix}-cdn-bucket-kms-key-${$app.stage}`,
+    targetKeyId: presignedUrlCdnBucketKms.id,
+  },
+);
+
+// new aws.kms.KeyPolicy(
+//   `${infraConfigResources.idPrefix}-cdn-bucket-kms-key-policy-${$app.stage}`,
+//   {
+//     keyId: kmsResources.presignedUrlCdnBucketKms.id,
+//     policy: JSON.stringify({
+//       Id: `${infraConfigResources.idPrefix}-cdn-bucket-kms-key-policy-${$app.stage}`,
+//       Statement: [
+//         {
+//           Action: ["kms:Decrypt", "kms:Encrypt", "kms:GenerateDataKey*"],
+//           Effect: "Allow",
+//           Principal: {
+//             AWS: `arn:aws:iam::${infraConfigResources.awsAccountId}:root`,
+//             Service: "cloudfront.amazonaws.com",
+//           },
+//           Resource: "*",
+//           Sid: "AllowCloudFrontServicePrincipalSSE-KMS",
+//           Condition: {
+//             StringEquals: {
+//               "AWS:SourceArn": presignedUrlCdn.nodes.distribution.arn,
+//             },
+//           },
+//         },
+//       ],
+//       Version: "2012-10-17",
+//     }),
+//   },
+// );
 
 // ssm登録
 new aws.ssm.Parameter(
