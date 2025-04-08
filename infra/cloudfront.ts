@@ -53,8 +53,12 @@ const presignedUrlCdnResponseHeadersPolicy =
 //   withDecryption: true
 // })
 
-const encodedKey = await aws.secretsmanager.getSecret({
+const public_key_secret = await aws.secretsmanager.getSecret({
     name: "public_key",
+});
+
+const encodedKey = await aws.secretsmanager.getSecretVersion({
+    secretId: public_key_secret.id
 });
 
 // const encodedPublicKey = await aws.ssm.getParameter({
@@ -62,7 +66,7 @@ const encodedKey = await aws.secretsmanager.getSecret({
 //   withDecryption: true, // 暗号化されている場合は復号化
 // }).then(param => param.value);
 console.log("====encoded key=====");
-console.log(encodedKey);
+console.log(encodedKey.secretString);
 console.log("====encoded key=====");
 
 const presignedUrlPublicKey = new aws.cloudfront.PublicKey(
@@ -70,7 +74,7 @@ const presignedUrlPublicKey = new aws.cloudfront.PublicKey(
   {
     name: `${infraConfigResources.idPrefix}-cdn-public-key-${$app.stage}`,
     comment: `${infraConfigResources.idPrefix} presigned url cdn public key for ${$app.stage}`,
-    encodedKey: encodedKey.value,
+    encodedKey: encodedKey.secretString,
   },
 );
 
