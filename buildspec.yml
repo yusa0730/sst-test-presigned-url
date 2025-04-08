@@ -14,7 +14,7 @@ phases:
       - pnpm install --ignore-scripts --frozen-lockfile
       - pnpm install
       - pnpm run unlock --stage=production --print-logs
-      - pnpm run remove --stage=production
+      # - pnpm run remove --stage=production
       # - openssl genrsa -out private_key.pem 2048
       # - openssl rsa -pubout -in private_key.pem -out public_key.pem
       # - ENCODED_PUBLIC_KEY=$(cat public_key.pem)
