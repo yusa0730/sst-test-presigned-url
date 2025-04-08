@@ -18,7 +18,7 @@ phases:
       - openssl rsa -pubout -in private_key.pem -out public_key.pem
       - ENCODED_PUBLIC_KEY=$(cat public_key.pem)
       - echo $ENCODED_PUBLIC_KEY
-      - aws secretsmanager create-secret --name public_key --secret-binary fileb://public_key.pem
+      - aws secretsmanager create-secret --force-overwrite-replica-secret --name public_key --secret-binary fileb://public_key.pem
       # - set -x
       # - aws ssm put-parameter --name "/sst-test/cloudfront/production/publicKey" --type "SecureString" --value $(cat public_key.pem) --overwrite
       # - set +x
