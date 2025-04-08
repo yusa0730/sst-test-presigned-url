@@ -6,6 +6,9 @@ phases:
       - curl https://get.volta.sh | bash
       - export VOLTA_HOME=$HOME/.volta
       - export PATH=$VOLTA_HOME/bin:$PATH
+      - echo $VOLTA_HOME
+      - echo $PATH
+      - volta -v
       - volta install node@20.13.1
       - volta install pnpm@9.10.0
       - export VOLTA_FEATURE_PNPM=1
