@@ -10,9 +10,11 @@ phases:
       - echo $PATH
       - volta -v
       - volta install node@20.13.1
+      - node -v
       - volta install pnpm@9.10.0
       - export VOLTA_FEATURE_PNPM=1
-      - node -v
+      - hash -r
+      - which pnpm
       - pnpm -v
       - pnpm config set store-dir ~/.pnpm-store
   build:
