@@ -11,13 +11,9 @@ phases:
       - volta -v
       - volta install node@20.13.1
       - node -v
-      # - volta install pnpm@9.10.0
-      - volta install pnpm
-      - export VOLTA_FEATURE_PNPM=1
-      - hash -r
-      - which pnpm
+      - export PNPM_VERSION=9.10.0
+      - curl -fsSL https://get.pnpm.io/install.sh | bash -
       - pnpm -v
-      - pnpm config set store-dir ~/.pnpm-store
   build:
     commands:
       - pnpm install --ignore-scripts --frozen-lockfile
