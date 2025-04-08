@@ -4,9 +4,9 @@ console.log("======iam.ts start======");
 
 // Lambda@edgeのIAM Role
 const edgeFunctionRole = new aws.iam.Role(
-  `${infraConfigResources.idPrefix}-basic-auth-lambda-edge-role-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-basic-lambda-iar-${$app.stage}`,
   {
-    name: `${infraConfigResources.idPrefix}-presigned-url-cdn-basic-auth-lambda-edge-role-${$app.stage}`,
+    name: `${infraConfigResources.idPrefix}-auth-lambda-edge-iar-${$app.stage}`,
     managedPolicyArns: [
       "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
     ],
