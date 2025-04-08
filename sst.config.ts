@@ -11,7 +11,7 @@ export default $config({
     await import('./infra/infra-config');
     await import('./infra/iam');
     // await import('./infra/acm');
-    await import('./infra/kms');
+    // await import('./infra/kms');
     await import('./infra/waf');
     await import('./infra/s3');
     await import('./infra/guardduty');

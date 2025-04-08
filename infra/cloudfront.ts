@@ -40,11 +40,11 @@ const presignedUrlCdnResponseHeadersPolicy =
 //   bucket: `${infraConfigResources.idPrefix}-cdn-bucket-${$app.stage}`,
 // });
 
-const presignedUrlCdnBucket = $util
-  .all([s3Resources.presignedUrlCdnBucket.nodes.bucket.bucketDomainName])
-  .apply(async ([bucketDomainName]) => {
-    return await aws.s3.getBucket({ bucket: bucketDomainName });
-  });
+// const presignedUrlCdnBucket = $util
+//   .all([s3Resources.presignedUrlCdnBucket.nodes.bucket.bucketDomainName])
+//   .apply(async ([bucketDomainName]) => {
+//     return await aws.s3.getBucket({ bucket: bucketDomainName });
+//   });
 
 // cloudfront publickey登録
 // const encodedKey = new sst.Secret("ENCODED_PUBLIC_KEY");
@@ -89,7 +89,7 @@ const presignedUrlCdn = new sst.aws.Cdn(
         originId: `${infraConfigResources.idPrefix}-cdn-bucket-${$app.stage}`,
         originAccessControlId:
           s3Resources.presignedUrlCdnOriginAccessControl.id,
-        domainName: presignedUrlCdnBucket.bucketDomainName,
+        domainName: s3Resources.presignedUrlCdnBucket.nodes.bucket.bucketDomainName,
       },
     ],
     defaultCacheBehavior: {
@@ -140,7 +140,7 @@ const presignedUrlCdn = new sst.aws.Cdn(
 new aws.s3.BucketPolicy(
   `${infraConfigResources.idPrefix}-cdn-bucket-policy-${$app.stage}`,
   {
-    bucket: presignedUrlCdnBucket.id,
+    bucket: s3Resources.presignedUrlCdnBucket.nodes.bucket.id,
     policy: $jsonStringify({
       Version: "2012-10-17",
       Statement: [
@@ -149,8 +149,8 @@ new aws.s3.BucketPolicy(
           Principal: "*",
           Action: "s3:*",
           Resource: [
-            $interpolate`arn:aws:s3:::${presignedUrlCdnBucket.bucket}`,
-            $interpolate`arn:aws:s3:::${presignedUrlCdnBucket.bucket}/*`,
+            $interpolate`${s3Resources.presignedUrlCdnBucket.nodes.bucket.arn}`,
+            $interpolate`${s3Resources.presignedUrlCdnBucket.nodes.bucket.arn}/*`,
           ],
           Condition: {
             Bool: {
@@ -161,7 +161,7 @@ new aws.s3.BucketPolicy(
         {
           Effect: "Allow",
           Action: "s3:GetObject",
-          Resource: $interpolate`arn:aws:s3:::${presignedUrlCdnBucket.bucket}/*`,
+          Resource: $interpolate`${s3Resources.presignedUrlCdnBucket.nodes.bucket.arn}/*`,
           Principal: {
             Service: "cloudfront.amazonaws.com",
           },
@@ -174,7 +174,7 @@ new aws.s3.BucketPolicy(
         {
           Effect: "Allow",
           Action: "s3:PutObject",
-          Resource: $interpolate`arn:aws:s3:::${presignedUrlCdnBucket.bucket}/*`,
+          Resource: $interpolate`${s3Resources.presignedUrlCdnBucket.nodes.bucket.arn}/*`,
           Principal: {
             Service: "cloudfront.amazonaws.com",
           },
