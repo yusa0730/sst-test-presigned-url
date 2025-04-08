@@ -1,5 +1,4 @@
 import { infraConfigResources } from "./infra-config";
-import { kmsResources } from "./kms";
 import { s3Resources } from "./s3";
 import { wafResources } from "./waf";
 import { lambdaResources } from "./lambda";
@@ -36,37 +35,6 @@ const presignedUrlCdnResponseHeadersPolicy =
     },
   );
 
-// const presignedUrlCdnBucket = await aws.s3.getBucket({
-//   bucket: `${infraConfigResources.idPrefix}-cdn-bucket-${$app.stage}`,
-// });
-
-// const presignedUrlCdnBucket = $util
-//   .all([s3Resources.presignedUrlCdnBucket.nodes.bucket.bucketDomainName])
-//   .apply(async ([bucketDomainName]) => {
-//     return await aws.s3.getBucket({ bucket: bucketDomainName });
-//   });
-
-// cloudfront publickey登録
-// const encodedKey = new sst.Secret("ENCODED_PUBLIC_KEY");
-// const encodedKey = await aws.ssm.getParameter({
-//   name: "/sst-test/cloudfront/production/publicKey",
-//   withDecryption: true
-// })
-
-const public_key_secret = await aws.secretsmanager.getSecret({
-    name: "public_key",
-});
-
-const publicKey = await aws.secretsmanager.getSecretVersion({
-    secretId: public_key_secret.id
-});
-
-// 値（Base64エンコードされたバイナリまたは文字列）を取り出す
-const encodedKey = publicKey.secretString || 
-                  Buffer.from(publicKey.secretBinary!, "base64").toString("utf8");
-
-console.log("✅ Public Key:", encodedKey);
-
 const encodedPublicKey = await aws.ssm.getParameter({
   name: `/presigned/url/cloudfront/production/encoded/public`,
   withDecryption: true, // 暗号化されている場合は復号化
@@ -94,7 +62,8 @@ const presignedUrlKeyGroup = new aws.cloudfront.KeyGroup(
 const presignedUrlCdn = new sst.aws.Cdn(
   `${infraConfigResources.idPrefix}-cdn-${$app.stage}`,
   {
-    domain: "update.ishizawa-test.xyz",
+    domain: "upload.ishizawa-test.xyz",
+    comment: `${infraConfigResources.idPrefix}-cdn-${$app.stage}`,
     origins: [
       {
         originId: `${infraConfigResources.idPrefix}-cdn-bucket-${$app.stage}`,
@@ -204,57 +173,21 @@ new aws.s3.BucketPolicy(
 );
 
 // // KMSキー
-// const presignedUrlCdnBucketKms = new aws.kms.Key(
-//   `${infraConfigResources.idPrefix}-cdn-bucket-kms-key-test-${$app.stage}`,
-//   {
-//     description: `${infraConfigResources.idPrefix} presigned url cdn bucket kms key for ${$app.stage}`,
-//     policy: $jsonStringify({
-//       Version: "2012-10-17",
-//       Statement: [
-//         {
-//           Effect: "Allow",
-//           Action: ["kms:*"],
-//           Resource: ["*"],
-//           Principal: {
-//             AWS: `arn:aws:iam::${infraConfigResources.awsAccountId}:root`,
-//           },
-//         },
-//         {
-//           Action: ["kms:Decrypt", "kms:Encrypt", "kms:GenerateDataKey*"],
-//           Effect: "Allow",
-//           Principal: {
-//             AWS: `arn:aws:iam::${infraConfigResources.awsAccountId}:root`,
-//             Service: "cloudfront.amazonaws.com",
-//           },
-//           Resource: "*",
-//           Sid: "AllowCloudFrontServicePrincipalSSE-KMS",
-//           Condition: {
-//             StringEquals: {
-//               "AWS:SourceArn": presignedUrlCdn.nodes.distribution.arn,
-//             },
-//           },
-//         }
-//       ],
-//     }),
-//   },
-// );
-
-// //KMSキーエイリアス
-// const presignedUrlCdnBucketKmsAlias = new aws.kms.Alias(
-//   `${infraConfigResources.idPrefix}-cdn-bucket-kms-key-alias-${$app.stage}`,
-//   {
-//     name: `alias/${infraConfigResources.idPrefix}-cdn-bucket-kms-key-${$app.stage}`,
-//     targetKeyId: presignedUrlCdnBucketKms.id,
-//   },
-// );
-
-new aws.kms.KeyPolicy(
-  `${infraConfigResources.idPrefix}-cdn-bucket-kms-key-policy-${$app.stage}`,
+const presignedUrlCdnBucketKms = new aws.kms.Key(
+  `${infraConfigResources.idPrefix}-cdn-bucket-kms-key-test-${$app.stage}`,
   {
-    keyId: kmsResources.presignedUrlCdnBucketKms.id,
-    policy: JSON.stringify({
-      Id: `${infraConfigResources.idPrefix}-cdn-bucket-kms-key-policy-${$app.stage}`,
+    description: `${infraConfigResources.idPrefix} presigned url cdn bucket kms key for ${$app.stage}`,
+    policy: $jsonStringify({
+      Version: "2012-10-17",
       Statement: [
+        {
+          Effect: "Allow",
+          Action: ["kms:*"],
+          Resource: ["*"],
+          Principal: {
+            AWS: `arn:aws:iam::${infraConfigResources.awsAccountId}:root`,
+          },
+        },
         {
           Action: ["kms:Decrypt", "kms:Encrypt", "kms:GenerateDataKey*"],
           Effect: "Allow",
@@ -269,11 +202,32 @@ new aws.kms.KeyPolicy(
               "AWS:SourceArn": presignedUrlCdn.nodes.distribution.arn,
             },
           },
-        },
+        }
       ],
-      Version: "2012-10-17",
     }),
   },
+);
+
+// //KMSキーエイリアス
+const presignedUrlCdnBucketKmsAlias = new aws.kms.Alias(
+  `${infraConfigResources.idPrefix}-cdn-bucket-kms-key-alias-${$app.stage}`,
+  {
+    name: `alias/${infraConfigResources.idPrefix}-cdn-bucket-kms-key-${$app.stage}`,
+    targetKeyId: presignedUrlCdnBucketKms.id,
+  },
+);
+
+new aws.s3.BucketServerSideEncryptionConfigurationV2(
+  `${infraConfigResources.idPrefix}-cdn-bucket-server-side-encryption-${$app.stage}`,
+  {
+    bucket: s3Resources.presignedUrlCdnBucket.id,
+    rules: [{
+        applyServerSideEncryptionByDefault: {
+            kmsMasterKeyId: presignedUrlCdnBucketKms.arn,
+            sseAlgorithm: "aws:kms",
+        },
+    }],
+  }
 );
 
 // ssm登録
