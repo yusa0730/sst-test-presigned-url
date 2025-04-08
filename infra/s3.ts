@@ -8,7 +8,7 @@ const presignedUrlCdnBucket = new sst.aws.Bucket(
   {
     transform: {
       bucket: {
-        bucket: `${infraConfigResources.idPrefix}-presigned-url-cdn-bucket-${$app.stage}`,
+        bucket: `${infraConfigResources.idPrefix}-cdn-bucket-${$app.stage}`,
         serverSideEncryptionConfigurations: [
           {
             rules: [
@@ -25,7 +25,7 @@ const presignedUrlCdnBucket = new sst.aws.Bucket(
         ],
       },
       cors: {
-        bucket: `${infraConfigResources.idPrefix}-presigned-url-cdn-bucket-${$app.stage}`,
+        bucket: `${infraConfigResources.idPrefix}-cdn-bucket-${$app.stage}`,
         corsRules: [
           {
             allowedOrigins: ["*"],
@@ -42,11 +42,11 @@ const presignedUrlCdnBucket = new sst.aws.Bucket(
 
 // ログバケット
 const presignedUrlCdnLogBucket = new sst.aws.Bucket(
-  `${infraConfigResources.idPrefix}-presigned-url-cdn-log-bucket-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-cdn-log-bucket-${$app.stage}`,
   {
     transform: {
       bucket: {
-        bucket: `${infraConfigResources.idPrefix}-presigned-url-cdn-log-bucket-${$app.stage}`,
+        bucket: `${infraConfigResources.idPrefix}-cdn-log-bucket-${$app.stage}`,
       },
     },
   },
@@ -54,7 +54,7 @@ const presignedUrlCdnLogBucket = new sst.aws.Bucket(
 
 // aclの設定
 new aws.s3.BucketOwnershipControls(
-  `${infraConfigResources.idPrefix}-presigned-url-cdn-log-bucket-ownership-controls-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-cdn-log-bucket-ownership-controls-${$app.stage}`,
   {
     bucket: presignedUrlCdnLogBucket.nodes.bucket.id,
     rule: {
@@ -66,9 +66,9 @@ new aws.s3.BucketOwnershipControls(
 // オリジンアクセスコントロールS3
 const presignedUrlCdnOriginAccessControl =
   new aws.cloudfront.OriginAccessControl(
-    `${infraConfigResources.idPrefix}-presigned-url-cdn-origin-access-control-${$app.stage}`,
+    `${infraConfigResources.idPrefix}-cdn-origin-access-control-${$app.stage}`,
     {
-      name: `${infraConfigResources.idPrefix}-presigned-url-cdn-origin-access-control-${$app.stage}`,
+      name: `${infraConfigResources.idPrefix}-cdn-origin-access-control-${$app.stage}`,
       description: `${infraConfigResources.idPrefix} presigned url cdn origin access control for ${$app.stage}`,
       originAccessControlOriginType: "s3",
       signingBehavior: "always",

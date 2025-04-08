@@ -2,7 +2,7 @@ import { infraConfigResources } from "./infra-config";
 
 // KMSキー
 const presignedUrlCdnBucketKms = new aws.kms.Key(
-  `${infraConfigResources.idPrefix}-presigned-url-cdn-bucket-kms-key-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-cdn-bucket-kms-key-${$app.stage}`,
   {
     description: `${infraConfigResources.idPrefix} presigned url cdn bucket kms key for ${$app.stage}`,
     policy: $jsonStringify({
@@ -23,9 +23,9 @@ const presignedUrlCdnBucketKms = new aws.kms.Key(
 
 //KMSキーエイリアス
 const presignedUrlCdnBucketKmsAlias = new aws.kms.Alias(
-  `${infraConfigResources.idPrefix}-presigned-url-cdn-bucket-kms-key-alias-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-cdn-bucket-kms-key-alias-${$app.stage}`,
   {
-    name: `alias/${infraConfigResources.idPrefix}-presigned-url-cdn-bucket-kms-key-${$app.stage}`,
+    name: `alias/${infraConfigResources.idPrefix}-cdn-bucket-kms-key-${$app.stage}`,
     targetKeyId: presignedUrlCdnBucketKms.id,
   },
 );

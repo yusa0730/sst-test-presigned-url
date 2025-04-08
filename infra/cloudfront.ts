@@ -7,9 +7,9 @@ import { lambdaResources } from "./lambda";
 // レスポンスヘッダーポリシー
 const presignedUrlCdnResponseHeadersPolicy =
   new aws.cloudfront.ResponseHeadersPolicy(
-    `${infraConfigResources.idPrefix}-presigned-url-cdn-response-headers-policy-${$app.stage}`,
+    `${infraConfigResources.idPrefix}-cdn-response-headers-policy-${$app.stage}`,
     {
-      name: `${infraConfigResources.idPrefix}-presigned-url-cdn-response-headers-policy-${$app.stage}`,
+      name: `${infraConfigResources.idPrefix}-cdn-response-headers-policy-${$app.stage}`,
       securityHeadersConfig: {
         strictTransportSecurity: {
           override: true,
@@ -37,7 +37,7 @@ const presignedUrlCdnResponseHeadersPolicy =
   );
 
 // const presignedUrlCdnBucket = await aws.s3.getBucket({
-//   bucket: `${infraConfigResources.idPrefix}-presigned-url-cdn-bucket-${$app.stage}`,
+//   bucket: `${infraConfigResources.idPrefix}-cdn-bucket-${$app.stage}`,
 // });
 
 const presignedUrlCdnBucket = $util
@@ -58,9 +58,9 @@ const encodedKey = await aws.ssm.getParameter({
 //   withDecryption: true, // 暗号化されている場合は復号化
 // }).then(param => param.value);
 const presignedUrlPublicKey = new aws.cloudfront.PublicKey(
-  `${infraConfigResources.idPrefix}-presigned-url-cdn-public-key-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-cdn-public-key-${$app.stage}`,
   {
-    name: `${infraConfigResources.idPrefix}-presigned-url-cdn-public-key-${$app.stage}`,
+    name: `${infraConfigResources.idPrefix}-cdn-public-key-${$app.stage}`,
     comment: `${infraConfigResources.idPrefix} presigned url cdn public key for ${$app.stage}`,
     encodedKey: encodedKey.value,
   },
@@ -68,21 +68,21 @@ const presignedUrlPublicKey = new aws.cloudfront.PublicKey(
 
 // キーグループ
 const presignedUrlKeyGroup = new aws.cloudfront.KeyGroup(
-  `${infraConfigResources.idPrefix}-presigned-url-cdn-key-group-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-cdn-key-group-${$app.stage}`,
   {
-    name: `${infraConfigResources.idPrefix}-presigned-url-cdn-key-group-${$app.stage}`,
+    name: `${infraConfigResources.idPrefix}-cdn-key-group-${$app.stage}`,
     comment: `${infraConfigResources.idPrefix} presigned url cdn key group for ${$app.stage}`,
     items: [presignedUrlPublicKey.id],
   },
 );
 
 const presignedUrlCdn = new sst.aws.Cdn(
-  `${infraConfigResources.idPrefix}-presigned-url-cdn-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-cdn-${$app.stage}`,
   {
     domain: "update.ishizawa-test.xyz",
     origins: [
       {
-        originId: `${infraConfigResources.idPrefix}-presigned-url-cdn-bucket-${$app.stage}`,
+        originId: `${infraConfigResources.idPrefix}-cdn-bucket-${$app.stage}`,
         originAccessControlId:
           s3Resources.presignedUrlCdnOriginAccessControl.id,
         domainName: presignedUrlCdnBucket.bucketDomainName,
@@ -109,7 +109,7 @@ const presignedUrlCdn = new sst.aws.Cdn(
         headers: ["X-Authorization"],
         queryString: true,
       },
-      targetOriginId: `${infraConfigResources.idPrefix}-presigned-url-cdn-bucket-${$app.stage}`,
+      targetOriginId: `${infraConfigResources.idPrefix}-cdn-bucket-${$app.stage}`,
       viewerProtocolPolicy: "redirect-to-https",
       responseHeadersPolicyId: presignedUrlCdnResponseHeadersPolicy.id,
       lambdaFunctionAssociations: [
@@ -125,7 +125,7 @@ const presignedUrlCdn = new sst.aws.Cdn(
         webAclId: wafResources.presignedUrlCdnWaf.arn,
         loggingConfig: {
           bucket: s3Resources.presignedUrlCdnLogBucket.domain,
-          prefix: `${infraConfigResources.idPrefix}-presigned-url-cdn-${$app.stage}`,
+          prefix: `${infraConfigResources.idPrefix}-cdn-${$app.stage}`,
         },
       },
     },
@@ -134,7 +134,7 @@ const presignedUrlCdn = new sst.aws.Cdn(
 
 // presigned url bucketにオリジンアクセスの許可をする
 new aws.s3.BucketPolicy(
-  `${infraConfigResources.idPrefix}-presigned-url-cdn-bucket-policy-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-cdn-bucket-policy-${$app.stage}`,
   {
     bucket: presignedUrlCdnBucket.id,
     policy: $jsonStringify({
@@ -190,7 +190,7 @@ new aws.s3.BucketPolicy(
 
 // presigned url bucketにオリジンアクセスの許可をする
 new aws.s3.BucketPolicy(
-  `${infraConfigResources.idPrefix}-presigned-url-cdn-bucket-policy-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-cdn-bucket-policy-${$app.stage}`,
   {
     bucket: presignedUrlCdnBucket.id,
     policy: $jsonStringify({
@@ -245,11 +245,11 @@ new aws.s3.BucketPolicy(
 );
 
 new aws.kms.KeyPolicy(
-  `${infraConfigResources.idPrefix}-presigned-url-cdn-bucket-kms-key-policy-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-cdn-bucket-kms-key-policy-${$app.stage}`,
   {
     keyId: kmsResources.presignedUrlCdnBucketKms.id,
     policy: JSON.stringify({
-      Id: `${infraConfigResources.idPrefix}-presigned-url-cdn-bucket-kms-key-policy-${$app.stage}`,
+      Id: `${infraConfigResources.idPrefix}-cdn-bucket-kms-key-policy-${$app.stage}`,
       Statement: [
         {
           Action: ["kms:Decrypt", "kms:Encrypt", "kms:GenerateDataKey*"],
@@ -274,9 +274,9 @@ new aws.kms.KeyPolicy(
 
 // ssm登録
 new aws.ssm.Parameter(
-  `${infraConfigResources.idPrefix}-presigned-url-cdn-publicKey-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-cdn-publicKey-${$app.stage}`,
   {
-    name: `/${infraConfigResources.idPrefix}-presigned-url-cdn/publicKey/${$app.stage}`,
+    name: `/${infraConfigResources.idPrefix}-cdn/publicKey/${$app.stage}`,
     type: "String",
     value: presignedUrlPublicKey.id,
   },

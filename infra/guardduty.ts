@@ -39,7 +39,7 @@ const presignedUrlGuarddutyIamRole = new aws.iam.Role(
 
 // GuardDuty
 const presignedUrlGuardduty = new aws.guardduty.MalwareProtectionPlan(
-  `${infraConfigResources.idPrefix}-presigned-url-cdn-bucket-guardduty-malware-protection-plan-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-cdn-bucket-guardduty-malware-protection-plan-${$app.stage}`,
   {
     role: presignedUrlGuarddutyIamRole.arn,
     actions: [
@@ -57,7 +57,7 @@ const presignedUrlGuardduty = new aws.guardduty.MalwareProtectionPlan(
       },
     },
     tags: {
-      Name: `${infraConfigResources.idPrefix}-presigned-url-cdn-bucket-guardduty-malware-protection-plan-${$app.stage}`,
+      Name: `${infraConfigResources.idPrefix}-cdn-bucket-guardduty-malware-protection-plan-${$app.stage}`,
     },
   },
 );

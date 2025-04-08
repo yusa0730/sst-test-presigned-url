@@ -2,9 +2,9 @@ import { infraConfigResources } from "./infra-config";
 
 // Wafカスタムルールを作成
 const presignedUrlCdnWafCustomRule = new aws.wafv2.RuleGroup(
-  `${infraConfigResources.idPrefix}-presigned-url-cdn-waf-custom-rule-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-cdn-waf-custom-rule-${$app.stage}`,
   {
-    name: `${infraConfigResources.idPrefix}-presigned-url-cdn-waf-custom-rule-${$app.stage}`,
+    name: `${infraConfigResources.idPrefix}-cdn-waf-custom-rule-${$app.stage}`,
     description: "Waf custom rule for satto memo presigned url cdn",
     capacity: 1,
     scope: "CLOUDFRONT",
@@ -52,9 +52,9 @@ const presignedUrlCdnWafCustomRule = new aws.wafv2.RuleGroup(
 
 // Wafを作成
 const presignedUrlCdnWaf = new aws.wafv2.WebAcl(
-  `${infraConfigResources.idPrefix}-presigned-url-cdn-waf-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-cdn-waf-${$app.stage}`,
   {
-    name: `${infraConfigResources.idPrefix}-presigned-url-cdn-waf-${$app.stage}`,
+    name: `${infraConfigResources.idPrefix}-cdn-waf-${$app.stage}`,
     description: "Waf for satto memo presigned url cdn",
     defaultAction: {
       allow: {},
@@ -62,7 +62,7 @@ const presignedUrlCdnWaf = new aws.wafv2.WebAcl(
     scope: "CLOUDFRONT",
     visibilityConfig: {
       cloudwatchMetricsEnabled: true,
-      metricName: `${infraConfigResources.idPrefix}-presigned-url-cdn-waf-${$app.stage}`,
+      metricName: `${infraConfigResources.idPrefix}-cdn-waf-${$app.stage}`,
       sampledRequestsEnabled: true,
     },
     rules: [

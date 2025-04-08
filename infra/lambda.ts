@@ -3,10 +3,10 @@ import { iamResources } from "./iam";
 
 // Lambda@edgeの関数
 const basicAuthLambdaEdge = new sst.aws.Function(
-  `${infraConfigResources.idPrefix}-presigned-url-cdn-basic-auth-lambda-edge-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-cdn-basic-auth-lambda-edge-${$app.stage}`,
   {
     handler: "functions/handler.handler",
-    name: `${infraConfigResources.idPrefix}-presigned-url-cdn-basic-auth-lambda-edge-${$app.stage}`,
+    name: `${infraConfigResources.idPrefix}-cdn-basic-auth-lambda-edge-${$app.stage}`,
     runtime: "nodejs20.x",
     memory: "128 MB",
     timeout: "5 seconds",
