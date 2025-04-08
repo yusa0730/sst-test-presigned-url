@@ -67,21 +67,17 @@ const encodedKey = publicKey.secretString ||
 
 console.log("✅ Public Key:", encodedKey);
 
-// const encodedPublicKey = await aws.ssm.getParameter({
-//   name: `/${infraConfigResouces.idPrefix}/encodedPublicKey`,
-//   withDecryption: true, // 暗号化されている場合は復号化
-// }).then(param => param.value);
-console.log("====encoded key=====");
-console.log(public_key_secret);
-console.log(encodedKey);
-console.log("====encoded key=====");
+const encodedPublicKey = await aws.ssm.getParameter({
+  name: `/presigned/url/cloudfront/production/encoded/public`,
+  withDecryption: true, // 暗号化されている場合は復号化
+}).then(param => param.value);
 
 const presignedUrlPublicKey = new aws.cloudfront.PublicKey(
   `${infraConfigResources.idPrefix}-cdn-public-key-${$app.stage}`,
   {
     name: `${infraConfigResources.idPrefix}-cdn-public-key-${$app.stage}`,
     comment: `${infraConfigResources.idPrefix} presigned url cdn public key for ${$app.stage}`,
-    encodedKey: encodedKey,
+    encodedKey: encodedPublicKey,
   },
 );
 
