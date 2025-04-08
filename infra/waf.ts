@@ -5,7 +5,7 @@ const presignedUrlCdnWafCustomRule = new aws.wafv2.RuleGroup(
   `${infraConfigResources.idPrefix}-cdn-waf-custom-rule-${$app.stage}`,
   {
     name: `${infraConfigResources.idPrefix}-cdn-waf-custom-rule-${$app.stage}`,
-    description: "Waf custom rule for satto memo presigned url cdn",
+    description: "Waf custom rule for presigned url cdn",
     capacity: 1,
     scope: "CLOUDFRONT",
     visibilityConfig: {
@@ -55,7 +55,7 @@ const presignedUrlCdnWaf = new aws.wafv2.WebAcl(
   `${infraConfigResources.idPrefix}-cdn-waf-${$app.stage}`,
   {
     name: `${infraConfigResources.idPrefix}-cdn-waf-${$app.stage}`,
-    description: "Waf for satto memo presigned url cdn",
+    description: "Waf for presigned url cdn",
     defaultAction: {
       allow: {},
     },
