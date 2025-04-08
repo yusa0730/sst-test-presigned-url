@@ -1,17 +1,17 @@
 version: 0.2
 phases:
   install:
-    runtime-versions:
-      nodejs: 22
     commands:
-      - npm install -g pnpm@9.10.0
-      - pnpm config set store-dir ~/.pnpm-store
-      - pnpm -v
+      # pnpm系
       - curl https://get.volta.sh | bash
       - export VOLTA_HOME=$HOME/.volta
       - export PATH=$VOLTA_HOME/bin:$PATH
       - volta install node@20.13.1
+      - volta install pnpm@9.10.0
+      - export VOLTA_FEATURE_PNPM=1
       - node -v
+      - pnpm -v
+      - pnpm config set store-dir ~/.pnpm-store
   build:
     commands:
       - pnpm install --ignore-scripts --frozen-lockfile
