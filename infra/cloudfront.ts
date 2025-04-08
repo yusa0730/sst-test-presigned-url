@@ -149,7 +149,7 @@ const presignedUrlCdn = new sst.aws.Cdn(
 
 // presigned url bucketにオリジンアクセスの許可をする
 new aws.s3.BucketPolicy(
-  `${infraConfigResources.idPrefix}-cdn-bucket-policy-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-cdn-bucket-policy-test-${$app.stage}`,
   {
     bucket: s3Resources.presignedUrlCdnBucket.nodes.bucket.id,
     policy: $jsonStringify({
