@@ -19,7 +19,7 @@ phases:
       - ENCODED_PUBLIC_KEY=$(cat public_key.pem)
       - echo $ENCODED_PUBLIC_KEY
       # - set -x
-      - aws ssm put-parameter --name "/sst-test/cloudfront/production/publicKey" --type "SecureString" --value $(cat public_key.pem) --overwrite
+      # - aws ssm put-parameter --name "/sst-test/cloudfront/production/publicKey" --type "SecureString" --value $(cat public_key.pem) --overwrite
       # - set +x
       # - sst secret set ENCODED_PUBLIC_KEY $ENCODED_PUBLIC_KEY --stage=production --print-logs
       # - pnpm run secret:encodekey --stage=production --print-logs
