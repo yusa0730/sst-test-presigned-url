@@ -35,8 +35,9 @@ phases:
       # - aws ssm get-parameter --name "/sst-test/cloudfront/production/privateKey" --with-decryption
       - aws ssm get-parameter --name "/sst-test/cloudfront/production/privateKey" --with-decryption --query "Parameter.Value" --output text > ./private_key.pem
       - cat private_key.pem
+      - pnpm run secret:list
       - |
-        if ! sst secret list | grep -q "PRIVATE_KEY"; then
+        if ! pnpm run secret:list | grep -q "PRIVATE_KEY"; then
           echo "PRIVATE_KEYシークレットが見つかりません。新しいシークレットを設定します。"
           pnpm run secret:private --stage=production --print-logs
         else
