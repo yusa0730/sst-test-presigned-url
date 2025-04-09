@@ -3,6 +3,11 @@ import { s3Resources } from "./s3";
 import { wafResources } from "./waf";
 import { lambdaResources } from "./lambda";
 
+
+const privateKey = new sst.Secret("PRIVATE_KEY");
+console.log("%s", privateKey);
+console.log("%s", privateKey.value);
+
 // レスポンスヘッダーポリシー
 const presignedUrlCdnResponseHeadersPolicy =
   new aws.cloudfront.ResponseHeadersPolicy(
