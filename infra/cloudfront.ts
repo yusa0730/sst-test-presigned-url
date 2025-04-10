@@ -4,9 +4,24 @@ import { wafResources } from "./waf";
 import { lambdaResources } from "./lambda";
 
 
-const privateKey = new sst.Secret("PRIVATE_KEY");
+const privateKey = new sst.Secret("ENCODED_PRIVATE_KEY");
 console.log("%s", privateKey);
 console.log("%s", privateKey.value);
+$resolve(privateKey).apply((privateKey) => {
+  console.log("======privateKey=======");
+  console.log(privateKey)
+  console.log(privateKey.value)
+  console.log("======privateKey=======");
+});
+
+
+const publicKey = new sst.Secret("ENCODED_PUBLIC_KEY");
+$resolve(publicKey).apply((publicKey) => {
+  console.log("======publicKey=======");
+  console.log(publicKey)
+  console.log(publicKey.value)
+  console.log("======publicKey=======");
+});
 
 // レスポンスヘッダーポリシー
 const presignedUrlCdnResponseHeadersPolicy =
@@ -55,7 +70,7 @@ const presignedUrlPublicKey = new aws.cloudfront.PublicKey(
   {
     name: `${infraConfigResources.idPrefix}-cdn-public-key-${$app.stage}`,
     comment: `${infraConfigResources.idPrefix} presigned url cdn public key for ${$app.stage}`,
-    encodedKey,
+    encodedKey: $resolve(publicKey).apply(publicKey => publicKey.value),
   },
 );
 
