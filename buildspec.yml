@@ -16,34 +16,15 @@ phases:
       - pnpm run unlock --stage=production --print-logs
       # - openssl genrsa -out private_key.pem 2048
       # - openssl rsa -pubout -in private_key.pem -out public_key.pem
-      # - ENCODED_PUBLIC_KEY=$(cat public_key.pem)
+      # - ENCODED_PRIVATE_KEY=$(base64 private_key.pem)
+      # - ENCODED_PUBLIC_KEY=$(base64 public_key.pem)
+      # - echo $ENCODED_PRIVATE_KEY
       # - echo $ENCODED_PUBLIC_KEY
-      # - |
-      #   if aws secretsmanager get-secret-value --secret-id public_key > /dev/null 2>&1; then
-      #     echo "existing secret"
-      #   else
-      #     echo "Creating new secret..."
-      #     aws secretsmanager create-secret --name public_key --secret-binary fileb://public_key.pem
-      #     pnpm run secret:private --stage=production --print-logs
-      #   fi
-      # - aws secretsmanager create-secret --force-overwrite-replica-secret --name public_key --secret-binary fileb://public_key.pem
-      # - set -x
-      # - aws ssm put-parameter --name "/sst-test/cloudfront/production/publicKey" --type "SecureString" --value $(cat public_key.pem) --overwrite
-      # - set +x
-      # - sst secret set ENCODED_PUBLIC_KEY $ENCODED_PUBLIC_KEY --stage=production --print-logs
       # - pnpm run secret:encodekey --stage=production --print-logs
-      # - aws ssm get-parameter --name "/sst-test/cloudfront/production/privateKey" --with-decryption
+      # - pnpm run secret:private:encodeKey --stage production --print-logs
       - aws ssm get-parameter --name "/sst-test/cloudfront/production/privateKey" --with-decryption --query "Parameter.Value" --output text > ./private_key.pem
       - cat private_key.pem
-      - pnpm run secret:list
-      - |
-        if ! pnpm run secret:list | grep -q "PRIVATE_KEY"; then
-          echo "PRIVATE_KEYシークレットが見つかりません。新しいシークレットを設定します。"
-          pnpm run secret:private --stage=production --print-logs
-        else
-          echo "PRIVATE_KEYシークレットはすでに存在します。"
-        fi
-      # - pnpm run secret:private --stage=production --print-logs
+      - pnpm run secret:private --stage production --print-logs
       - rm -f private_key.pem
       - pnpm run refresh --stage=production --print-logs
       - pnpm run remove --stage=production

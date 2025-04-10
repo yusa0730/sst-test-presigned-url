@@ -8,6 +8,7 @@ const presignedUrlCdnLogBucket = new sst.aws.Bucket(
     transform: {
       bucket: {
         bucket: `${infraConfigResources.idPrefix}-cdn-log-bucket-${$app.stage}`,
+        forceDestroy: true
       },
     },
   },
@@ -28,6 +29,7 @@ const presignedUrlCdnBucket = new aws.s3.BucketV2(
   `${infraConfigResources.idPrefix}-cdn-bucket-${$app.stage}`,
   {
     bucket: `${infraConfigResources.idPrefix}-cdn-bucket-${$app.stage}`,
+    forceDestroy: true
   },
 );
 

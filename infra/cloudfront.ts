@@ -40,28 +40,32 @@ const presignedUrlCdnResponseHeadersPolicy =
     },
   );
 
-const encodedPublicKey = await aws.ssm.getParameter({
+const { value: rawEncodedKey } = await aws.ssm.getParameter({
   name: `/presigned/url/cloudfront/production/encoded/public`,
-  withDecryption: true, // 暗号化されている場合は復号化
-}).then(param => param.value);
+  withDecryption: true,
+});
+
+// 既存の末尾の改行をいったん削除して、明示的に改行を追加
+const encodedKey = rawEncodedKey.trimEnd() + "\n";
+
+console.log("末尾に\\n付きのencodedKey:\n", JSON.stringify(encodedKey));
 
 const presignedUrlPublicKey = new aws.cloudfront.PublicKey(
   `${infraConfigResources.idPrefix}-cdn-public-key-${$app.stage}`,
   {
     name: `${infraConfigResources.idPrefix}-cdn-public-key-${$app.stage}`,
     comment: `${infraConfigResources.idPrefix} presigned url cdn public key for ${$app.stage}`,
-    encodedKey: encodedPublicKey,
+    encodedKey,
   },
 );
 
-// キーグループ
 const presignedUrlKeyGroup = new aws.cloudfront.KeyGroup(
   `${infraConfigResources.idPrefix}-cdn-key-group-${$app.stage}`,
   {
     name: `${infraConfigResources.idPrefix}-cdn-key-group-${$app.stage}`,
     comment: `${infraConfigResources.idPrefix} presigned url cdn key group for ${$app.stage}`,
     items: [presignedUrlPublicKey.id],
-  },
+  }
 );
 
 const presignedUrlCdn = new sst.aws.Cdn(
@@ -233,16 +237,6 @@ new aws.s3.BucketServerSideEncryptionConfigurationV2(
         },
     }],
   }
-);
-
-// ssm登録
-new aws.ssm.Parameter(
-  `${infraConfigResources.idPrefix}-cdn-publicKey-${$app.stage}`,
-  {
-    name: `/${infraConfigResources.idPrefix}-cdn/publicKey/${$app.stage}`,
-    type: "String",
-    value: presignedUrlPublicKey.id,
-  },
 );
 
 export const cloudfrontResources = {

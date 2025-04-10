@@ -10,6 +10,7 @@
     "unlock": "sst unlock",
     "secret:encodekey": "sst secret set ENCODED_PUBLIC_KEY $ENCODED_PUBLIC_KEY",
     "secret:private": "sst secret set PRIVATE_KEY < ./private_key.pem",
+    "secret:private:encodeKey": "sst secret set ENCODED_PRIVATE_KEY $ENCODED_PRIVATE_KEY",
     "secret:list": "sst secret list",
     "init": "sst init",
     "typecheck": "tsc"
