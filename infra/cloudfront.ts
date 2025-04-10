@@ -5,18 +5,18 @@ import { lambdaResources } from "./lambda";
 
 
 const privateKey = new sst.Secret("ENCODED_PRIVATE_KEY");
-privateKey.value.apply((value) => {
+$resolve(privateKey.value).apply((value) => {
   console.log("======privateKey=======");
   console.log(value)
   console.log("======privateKey=======");
-})
+});
 
 const publicKey = new sst.Secret("ENCODED_PUBLIC_KEY");
-publicKey.value.apply((value) => {
+$resolve(publicKey.value).apply((value) => {
   console.log("======publicKey=======");
   console.log(value)
   console.log("======publicKey=======");
-})
+});
 
 // レスポンスヘッダーポリシー
 const presignedUrlCdnResponseHeadersPolicy =
