@@ -1,12 +1,12 @@
 {
-  "name": "aws-remix-after-move4",
+  "name": "presigned-url-test",
   "private": true,
   "sideEffects": false,
   "type": "module",
   "scripts": {
     "deploy": "sst deploy",
     "remove": "sst remove",
-    "refresh": "sst refresh --stage=production",
+    "refresh": "sst refresh",
     "unlock": "sst unlock",
     "secret:encodekey": "sst secret set ENCODED_PUBLIC_KEY $ENCODED_PUBLIC_KEY",
     "secret:private": "sst secret set PRIVATE_KEY < ./private_key.pem",
