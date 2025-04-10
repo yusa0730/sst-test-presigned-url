@@ -16,16 +16,18 @@ phases:
       - pnpm run unlock --stage=production --print-logs
       - openssl genrsa -out private_key.pem 2048
       - openssl rsa -pubout -in private_key.pem -out public_key.pem
-      - ENCODED_PRIVATE_KEY=$(base64 private_key.pem)
-      - ENCODED_PUBLIC_KEY=$(base64 public_key.pem)
+      # - ENCODED_PRIVATE_KEY=$(base64 private_key.pem)
+      # - ENCODED_PUBLIC_KEY=$(base64 public_key.pem)
+      - pnpm run secret:private --stage production --print-logs
+      - pnpm run secret:public --stage=production --print-logs
       - echo $ENCODED_PRIVATE_KEY
       - echo $ENCODED_PUBLIC_KEY
-      - pnpm run secret:encodekey --stage=production --print-logs
-      - pnpm run secret:private:encodeKey --stage production --print-logs
-      - aws ssm get-parameter --name "/sst-test/cloudfront/production/privateKey" --with-decryption --query "Parameter.Value" --output text > ./private_key.pem
+      # - pnpm run secret:encodekey --stage=production --print-logs
+      # - pnpm run secret:private:encodeKey --stage production --print-logs
+      # - aws ssm get-parameter --name "/sst-test/cloudfront/production/privateKey" --with-decryption --query "Parameter.Value" --output text > ./private_key.pem
       - cat private_key.pem
       - pnpm run secret:private --stage production --print-logs
-      - rm -f private_key.pem
+      - rm -f private_key.pem public_key.pem
       - pnpm run refresh --stage=production --print-logs
       # - pnpm run remove --stage=production
       - pnpm run deploy --stage=production --print-logs

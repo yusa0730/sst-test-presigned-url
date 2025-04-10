@@ -5,23 +5,18 @@ import { lambdaResources } from "./lambda";
 
 
 const privateKey = new sst.Secret("ENCODED_PRIVATE_KEY");
-console.log("%s", privateKey);
-console.log("%s", privateKey.value);
-$resolve(privateKey).apply((privateKey) => {
+privateKey.value.apply((value) => {
   console.log("======privateKey=======");
-  console.log(privateKey)
-  console.log(privateKey.value)
+  console.log(value)
   console.log("======privateKey=======");
-});
-
+})
 
 const publicKey = new sst.Secret("ENCODED_PUBLIC_KEY");
-$resolve(publicKey).apply((publicKey) => {
+publicKey.value.apply((value) => {
   console.log("======publicKey=======");
-  console.log(publicKey)
-  console.log(publicKey.value)
+  console.log(value)
   console.log("======publicKey=======");
-});
+})
 
 // レスポンスヘッダーポリシー
 const presignedUrlCdnResponseHeadersPolicy =
@@ -55,22 +50,22 @@ const presignedUrlCdnResponseHeadersPolicy =
     },
   );
 
-const { value: rawEncodedKey } = await aws.ssm.getParameter({
-  name: `/presigned/url/cloudfront/production/encoded/public`,
-  withDecryption: true,
-});
+// const { value: rawEncodedKey } = await aws.ssm.getParameter({
+//   name: `/presigned/url/cloudfront/production/encoded/public`,
+//   withDecryption: true,
+// });
 
-// 既存の末尾の改行をいったん削除して、明示的に改行を追加
-const encodedKey = rawEncodedKey.trimEnd() + "\n";
+// // 既存の末尾の改行をいったん削除して、明示的に改行を追加
+// const encodedKey = rawEncodedKey.trimEnd() + "\n";
 
-console.log("末尾に\\n付きのencodedKey:\n", JSON.stringify(encodedKey));
+// console.log("末尾に\\n付きのencodedKey:\n", JSON.stringify(encodedKey));
 
 const presignedUrlPublicKey = new aws.cloudfront.PublicKey(
   `${infraConfigResources.idPrefix}-cdn-public-key-${$app.stage}`,
   {
     name: `${infraConfigResources.idPrefix}-cdn-public-key-${$app.stage}`,
     comment: `${infraConfigResources.idPrefix} presigned url cdn public key for ${$app.stage}`,
-    encodedKey: $resolve(publicKey).apply(publicKey => publicKey.value),
+    encodedKey: $resolve(publicKey.value).apply(value => value),
   },
 );
 
