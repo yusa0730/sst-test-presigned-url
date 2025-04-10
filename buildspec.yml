@@ -27,7 +27,7 @@ phases:
       - pnpm run secret:private --stage production --print-logs
       - rm -f private_key.pem
       - pnpm run refresh --stage=production --print-logs
-      - pnpm run remove --stage=production
+      # - pnpm run remove --stage=production
       - pnpm run deploy --stage=production --print-logs
 cache:
   paths:
