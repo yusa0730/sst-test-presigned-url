@@ -2,37 +2,33 @@ import { infraConfigResources } from "./infra-config";
 import { s3Resources } from "./s3";
 import { wafResources } from "./waf";
 import { lambdaResources } from "./lambda";
+import { acmResources } from "./acm";
+import { albResources } from "./alb";
 
-
-const privateKey = new sst.Secret("ENCODED_PRIVATE_KEY");
-$resolve(privateKey.value).apply((value) => {
-  console.log("======privateKey=======");
-  console.log(value)
-  console.log("======privateKey=======");
-});
-
-
-const testLambda = new sst.aws.Function(
-  `${infraConfigResources.idPrefix}-cdn-test-lambda-${$app.stage}`,
+const vpcOriginForAlb = new aws.cloudfront.VpcOrigin(
+  `${infraConfigResources.idPrefix}-vpc-origin-${$app.stage}`,
   {
-    handler: "functions/test.handler",
-    name: `${infraConfigResources.idPrefix}-test-lambda-${$app.stage}`,
-    runtime: "nodejs20.x",
-    memory: "128 MB",
-    timeout: "5 seconds",
-    versioning: false,
-    environment: {
-      PRIVATE_KEY: $resolve(privateKey.value).apply(value => value)
-    }
+    vpcOriginEndpointConfig: {
+        arn: albResources.alb.arn,
+        httpPort: 80,
+        httpsPort: 443,
+        name: `${infraConfigResources.idPrefix}-vpc-origin-${$app.stage}`,
+        originProtocolPolicy: "https-only",
+        originSslProtocols: {
+            items: ["TLSv1.2"],
+            quantity: 1,
+        },
+    },
+    timeouts: {
+      create: "300s",
+      delete: "300s",
+      update: "300s",
+    },
+    tags: {
+        Name: `${infraConfigResources.idPrefix}-vpc-origin-${$app.stage}`,
+    },
   }
 );
-
-const publicKey = new sst.Secret("ENCODED_PUBLIC_KEY");
-$resolve(publicKey.value).apply((value) => {
-  console.log("======publicKey=======");
-  console.log(value)
-  console.log("======publicKey=======");
-});
 
 // レスポンスヘッダーポリシー
 const presignedUrlCdnResponseHeadersPolicy =
@@ -66,22 +62,12 @@ const presignedUrlCdnResponseHeadersPolicy =
     },
   );
 
-// const { value: rawEncodedKey } = await aws.ssm.getParameter({
-//   name: `/presigned/url/cloudfront/production/encoded/public`,
-//   withDecryption: true,
-// });
-
-// // 既存の末尾の改行をいったん削除して、明示的に改行を追加
-// const encodedKey = rawEncodedKey.trimEnd() + "\n";
-
-// console.log("末尾に\\n付きのencodedKey:\n", JSON.stringify(encodedKey));
-
 const presignedUrlPublicKey = new aws.cloudfront.PublicKey(
   `${infraConfigResources.idPrefix}-cdn-public-key-${$app.stage}`,
   {
     name: `${infraConfigResources.idPrefix}-cdn-public-key-${$app.stage}`,
     comment: `${infraConfigResources.idPrefix} presigned url cdn public key for ${$app.stage}`,
-    encodedKey: $resolve(publicKey.value).apply(value => value),
+    encodedKey: $resolve(infraConfigResources.publicKey.value).apply(value => value),
   },
 );
 
@@ -97,7 +83,14 @@ const presignedUrlKeyGroup = new aws.cloudfront.KeyGroup(
 const presignedUrlCdn = new sst.aws.Cdn(
   `${infraConfigResources.idPrefix}-cdn-${$app.stage}`,
   {
-    domain: "upload.ishizawa-test.xyz",
+    // domain: "upload.ishizawa-test.xyz",
+    domain: {
+      name: infraConfigResources.domainName,
+      dns: sst.aws.dns({
+        zone: infraConfigResources.hostedZone.zoneId
+      }),
+      cert: acmResources.cloudfrontCertificate.arn
+    },
     comment: `${infraConfigResources.idPrefix}-cdn-${$app.stage}`,
     origins: [
       {
@@ -106,6 +99,19 @@ const presignedUrlCdn = new sst.aws.Cdn(
           s3Resources.presignedUrlCdnOriginAccessControl.id,
         domainName: s3Resources.presignedUrlCdnBucket.bucketDomainName,
       },
+      {
+        originId: albResources.alb.id,
+        domainName: albResources.alb.dnsName,
+        vpcOriginConfig: {
+          vpcOriginId: vpcOriginForAlb.id,
+          originKeepaliveTimeout: 10,
+          originReadTimeout: 10,
+        },
+        customHeaders: [{
+            name: "X-Custom-Header",
+            value: `${infraConfigResources.idPrefix}-cloudfront`,
+        }],
+      }
     ],
     defaultCacheBehavior: {
       allowedMethods: [
@@ -131,14 +137,32 @@ const presignedUrlCdn = new sst.aws.Cdn(
       targetOriginId: `${infraConfigResources.idPrefix}-cdn-bucket-${$app.stage}`,
       viewerProtocolPolicy: "redirect-to-https",
       responseHeadersPolicyId: presignedUrlCdnResponseHeadersPolicy.id,
-      lambdaFunctionAssociations: [
-        {
-          lambdaArn: $interpolate`${lambdaResources.basicAuthLambdaEdge.arn}:${lambdaResources.basicAuthLambdaEdge.nodes.function.version}`,
-          eventType: "viewer-request",
-        },
-      ],
+      // lambdaFunctionAssociations: [
+      //   {
+      //     lambdaArn: $interpolate`${lambdaResources.basicAuthLambdaEdge.arn}:${lambdaResources.basicAuthLambdaEdge.nodes.function.version}`,
+      //     eventType: "viewer-request",
+      //   },
+      // ],
       trustedKeyGroups: [presignedUrlKeyGroup.id],
     },
+    orderedCacheBehaviors: [
+      {
+        allowedMethods: ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"],
+        cachedMethods: ["GET", "HEAD"],
+        minTtl: 0,
+        defaultTtl: 3600,
+        maxTtl: 86400,
+        // AllViewerExceptHostHeader
+        originRequestPolicyId: "b689b0a8-53d0-40ab-baf2-68738e2966ac",
+        // UseOriginCacheControlHeaders
+        cachePolicyId: "83da9c7e-98b4-4e11-a168-04f0df8e2c65",
+        responseHeadersPolicyId: presignedUrlCdnResponseHeadersPolicy.id,
+        pathPattern: "/api/*",
+        targetOriginId: albResources.alb.id,
+        viewerProtocolPolicy: "https-only",
+        compress: true,
+      },
+    ],
     transform: {
       distribution: {
         webAclId: wafResources.presignedUrlCdnWaf.arn,

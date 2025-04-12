@@ -22,6 +22,20 @@ const awsAccountId = await aws.ssm.getParameter({
 
 console.log("====awsAccountId====", awsAccountId);
 
+const privateKey = new sst.Secret("ENCODED_PRIVATE_KEY");
+$resolve(privateKey.value).apply((value) => {
+  console.log("======privateKey=======");
+  console.log(value)
+  console.log("======privateKey=======");
+});
+
+const publicKey = new sst.Secret("ENCODED_PUBLIC_KEY");
+$resolve(publicKey.value).apply((value) => {
+  console.log("======publicKey=======");
+  console.log(value)
+  console.log("======publicKey=======");
+});
+
 export const infraConfigResources = {
   idPrefix,
   mainRegion,
@@ -29,4 +43,6 @@ export const infraConfigResources = {
   hostedZone,
   awsUsEast1Provider,
   awsAccountId,
+  privateKey,
+  publicKey
 };

@@ -1,15 +1,15 @@
-import { infraConfigResouces } from "./infra-config";
+import { infraConfigResources } from "./infra-config";
 
 console.log("======alb acm.ts start======");
 
 const albCertificate = new aws.acm.Certificate(
-  `${infraConfigResouces.idPrefix}-alb-acm-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-alb-acm-${$app.stage}`,
   {
-    domainName: infraConfigResouces.domainName,
-    subjectAlternativeNames: [`*.alb.${infraConfigResouces.domainName}`],
+    domainName: infraConfigResources.domainName,
+    subjectAlternativeNames: [`*.alb.${infraConfigResources.domainName}`],
     validationMethod: "DNS",
     tags: {
-      Name: `${infraConfigResouces.idPrefix}-alb-acm-${$app.stage}`,
+      Name: `${infraConfigResources.idPrefix}-alb-acm-${$app.stage}`,
     }
   }
 )
@@ -20,14 +20,14 @@ albCertificate.domainValidationOptions.apply((domainValidationOptions) => {
     console.log("=====dvo======", dvo);
     records.push(
       new aws.route53.Record(
-        `${infraConfigResouces.idPrefix}-cname-record-${dvo.domainName}-${$app.stage}`,
+        `${infraConfigResources.idPrefix}-cname-record-${dvo.domainName}-${$app.stage}`,
         {
           allowOverwrite: true,
           name: dvo.resourceRecordName,
           records: [dvo.resourceRecordValue],
           ttl: 60,
           type: dvo.resourceRecordType,
-          zoneId: infraConfigResouces.hostedZone.zoneId
+          zoneId: infraConfigResources.hostedZone.zoneId
         },
       ),
     );
@@ -35,22 +35,22 @@ albCertificate.domainValidationOptions.apply((domainValidationOptions) => {
 });
 
 new aws.acm.CertificateValidation(
-  `${infraConfigResouces.idPrefix}-alb-certificate-validation-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-alb-certificate-validation-${$app.stage}`,
   {
     certificateArn: albCertificate.arn,
     validationRecordFqdns: records.map((record) => record.fqdn)
   }
 );
 
-const cloudfrontCertificate = new aws.acm.Certificate(`${infraConfigResouces.idPrefix}-cloudfront-${$app.stage}`, {
-  domainName: infraConfigResouces.domainName,
-  subjectAlternativeNames: [`*.${infraConfigResouces.domainName}`],
+const cloudfrontCertificate = new aws.acm.Certificate(`${infraConfigResources.idPrefix}-cloudfront-${$app.stage}`, {
+  domainName: infraConfigResources.domainName,
+  subjectAlternativeNames: [`upload.${infraConfigResources.domainName}`],
   validationMethod: "DNS",
   tags: {
-    Name: `${infraConfigResouces.idPrefix}-${$app.stage}`,
+    Name: `${infraConfigResources.idPrefix}-${$app.stage}`,
   },
 }, {
-    provider: infraConfigResouces.awsUsEast1Provider,
+    provider: infraConfigResources.awsUsEast1Provider,
   },
 );
 
@@ -60,14 +60,14 @@ cloudfrontCertificate.domainValidationOptions.apply((domainValidationOptions) =>
   for (const dvo of domainValidationOptions) {
     cloudfrontRecord.push(
       new aws.route53.Record(
-        `${infraConfigResouces.idPrefix}-cloudfront-cname-record-${dvo.domainName}-${$app.stage}`,
+        `${infraConfigResources.idPrefix}-cloudfront-cname-record-${dvo.domainName}-${$app.stage}`,
         {
           allowOverwrite: true,
           name: dvo.resourceRecordName,
           records: [dvo.resourceRecordValue],
           ttl: 60,
           type: dvo.resourceRecordType,
-          zoneId: infraConfigResouces.hostedZone.zoneId
+          zoneId: infraConfigResources.hostedZone.zoneId
         },
       ),
     );
@@ -75,14 +75,14 @@ cloudfrontCertificate.domainValidationOptions.apply((domainValidationOptions) =>
 });
 
 // ACM検証
-new aws.acm.CertificateValidation(`${infraConfigResouces.idPrefix}-validation-cloudfront-${$app.stage}`, {
+new aws.acm.CertificateValidation(`${infraConfigResources.idPrefix}-validation-cloudfront-${$app.stage}`, {
   certificateArn: cloudfrontCertificate.arn,
   validationRecordFqdns: cloudfrontRecord.map((r) => r.fqdn),
 }, {
-  provider: infraConfigResouces.awsUsEast1Provider,
+  provider: infraConfigResources.awsUsEast1Provider,
 });
 
-export const acmResouces = {
+export const acmResources = {
   albCertificate,
   cloudfrontCertificate,
   records
