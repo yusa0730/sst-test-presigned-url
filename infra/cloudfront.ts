@@ -11,6 +11,22 @@ $resolve(privateKey.value).apply((value) => {
   console.log("======privateKey=======");
 });
 
+
+const testLambda = new sst.aws.Function(
+  `${infraConfigResources.idPrefix}-cdn-test-lambda-${$app.stage}`,
+  {
+    handler: "functions/test.handler",
+    name: `${infraConfigResources.idPrefix}-test-lambda-${$app.stage}`,
+    runtime: "nodejs20.x",
+    memory: "128 MB",
+    timeout: "5 seconds",
+    versioning: false,
+    environment: {
+      PRIVATE_KEY: $resolve(privateKey.value).apply(value => value)
+    }
+  }
+);
+
 const publicKey = new sst.Secret("ENCODED_PUBLIC_KEY");
 $resolve(publicKey.value).apply((value) => {
   console.log("======publicKey=======");
@@ -192,6 +208,41 @@ new aws.s3.BucketPolicy(
 );
 
 // // KMSキー
+// const presignedUrlCdnBucketKms = new aws.kms.Key(
+//   `${infraConfigResources.idPrefix}-cdn-bucket-kms-key-test-${$app.stage}`,
+//   {
+//     description: `${infraConfigResources.idPrefix} presigned url cdn bucket kms key for ${$app.stage}`,
+//     policy: $jsonStringify({
+//       Version: "2012-10-17",
+//       Statement: [
+//         {
+//           Effect: "Allow",
+//           Action: ["kms:*"],
+//           Resource: ["*"],
+//           Principal: {
+//             AWS: `arn:aws:iam::${infraConfigResources.awsAccountId}:root`,
+//           },
+//         },
+//         {
+//           Action: ["kms:Decrypt", "kms:Encrypt", "kms:GenerateDataKey*"],
+//           Effect: "Allow",
+//           Principal: {
+//             AWS: `arn:aws:iam::${infraConfigResources.awsAccountId}:root`,
+//             Service: "cloudfront.amazonaws.com",
+//           },
+//           Resource: "*",
+//           Sid: "AllowCloudFrontServicePrincipalSSE-KMS",
+//           Condition: {
+//             StringEquals: {
+//               "AWS:SourceArn": presignedUrlCdn.nodes.distribution.arn,
+//             },
+//           },
+//         }
+//       ],
+//     }),
+//   },
+// );
+
 const presignedUrlCdnBucketKms = new aws.kms.Key(
   `${infraConfigResources.idPrefix}-cdn-bucket-kms-key-test-${$app.stage}`,
   {
@@ -205,21 +256,6 @@ const presignedUrlCdnBucketKms = new aws.kms.Key(
           Resource: ["*"],
           Principal: {
             AWS: `arn:aws:iam::${infraConfigResources.awsAccountId}:root`,
-          },
-        },
-        {
-          Action: ["kms:Decrypt", "kms:Encrypt", "kms:GenerateDataKey*"],
-          Effect: "Allow",
-          Principal: {
-            AWS: `arn:aws:iam::${infraConfigResources.awsAccountId}:root`,
-            Service: "cloudfront.amazonaws.com",
-          },
-          Resource: "*",
-          Sid: "AllowCloudFrontServicePrincipalSSE-KMS",
-          Condition: {
-            StringEquals: {
-              "AWS:SourceArn": presignedUrlCdn.nodes.distribution.arn,
-            },
           },
         }
       ],
@@ -245,6 +281,7 @@ new aws.s3.BucketServerSideEncryptionConfigurationV2(
             kmsMasterKeyId: presignedUrlCdnBucketKms.arn,
             sseAlgorithm: "aws:kms",
         },
+        bucketKeyEnabled: true
     }],
   }
 );

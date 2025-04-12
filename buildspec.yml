@@ -18,8 +18,8 @@ phases:
         SECRETS=$(pnpm run secret:list --stage production)
         has_private_key=false
         has_public_key=false
-        echo "$SECRETS" | grep -q "^ENCODED_PRIVATE_KEY=" && has_private_key=true
-        echo "$SECRETS" | grep -q "^ENCODED_PUBLIC_KEY=" && has_public_key=true
+        echo "$SECRETS" | grep -q "ENCODED_PRIVATE_KEY=" && has_private_key=true
+        echo "$SECRETS" | grep -q "ENCODED_PUBLIC_KEY=" && has_public_key=true
         if [ "$has_private_key" = false ] || [ "$has_public_key" = false ]; then
           echo "ENCODED_PRIVATE_KEY または ENCODED_PUBLIC_KEY のいずれかが存在しません"
           openssl genrsa -out private_key.pem 2048
