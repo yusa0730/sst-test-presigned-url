@@ -9,7 +9,7 @@ console.log("======alb.ts start======");
 const alb = new aws.lb.LoadBalancer(
   `${infraConfigResources.idPrefix}-alb-${$app.stage}`,
   {
-    name: `${infraConfigResources.idPrefix}-alb-${$app.stage}`,
+    name: `alb-${$app.stage}`,
     loadBalancerType: "application",
     internal: true,
     subnets: vpcResources.privateSubnets.map((subnet) => subnet.id),
@@ -30,9 +30,9 @@ const alb = new aws.lb.LoadBalancer(
 
 
 const targetGroup = new aws.lb.TargetGroup(
-  `${infraConfigResources.idPrefix}-tg-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-${$app.stage}`,
   {
-    name: `${infraConfigResources.idPrefix}-tg-${$app.stage}`,
+    name: `tg-${$app.stage}`,
     targetType: "ip",
     port: 3000,
     protocol: "HTTP",

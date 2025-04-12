@@ -85,7 +85,7 @@ const presignedUrlCdn = new sst.aws.Cdn(
   {
     // domain: "upload.ishizawa-test.xyz",
     domain: {
-      name: infraConfigResources.domainName,
+      name: `${infraConfigResources.domainName}`,
       dns: sst.aws.dns({
         zone: infraConfigResources.hostedZone.zoneId
       }),
@@ -113,54 +113,55 @@ const presignedUrlCdn = new sst.aws.Cdn(
         }],
       }
     ],
-    defaultCacheBehavior: {
-      allowedMethods: [
-        "GET",
-        "HEAD",
-        "OPTIONS",
-        "PUT",
-        "POST",
-        "PATCH",
-        "DELETE",
-      ],
+    defaultCacheBehavior: 
+    {
+      allowedMethods: ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"],
       cachedMethods: ["GET", "HEAD"],
-      defaultTtl: 0,
-      maxTtl: 0,
       minTtl: 0,
-      forwardedValues: {
-        cookies: {
-          forward: "none",
-        },
-        headers: ["X-Authorization"],
-        queryString: true,
-      },
-      targetOriginId: `${infraConfigResources.idPrefix}-cdn-bucket-${$app.stage}`,
-      viewerProtocolPolicy: "redirect-to-https",
+      defaultTtl: 3600,
+      maxTtl: 86400,
+      // AllViewerExceptHostHeader
+      originRequestPolicyId: "b689b0a8-53d0-40ab-baf2-68738e2966ac",
+      // UseOriginCacheControlHeaders
+      cachePolicyId: "83da9c7e-98b4-4e11-a168-04f0df8e2c65",
       responseHeadersPolicyId: presignedUrlCdnResponseHeadersPolicy.id,
-      // lambdaFunctionAssociations: [
-      //   {
-      //     lambdaArn: $interpolate`${lambdaResources.basicAuthLambdaEdge.arn}:${lambdaResources.basicAuthLambdaEdge.nodes.function.version}`,
-      //     eventType: "viewer-request",
-      //   },
-      // ],
-      trustedKeyGroups: [presignedUrlKeyGroup.id],
+      targetOriginId: albResources.alb.id,
+      viewerProtocolPolicy: "https-only",
+      compress: true,
     },
     orderedCacheBehaviors: [
       {
-        allowedMethods: ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"],
+        allowedMethods: [
+          "GET",
+          "HEAD",
+          "OPTIONS",
+          "PUT",
+          "POST",
+          "PATCH",
+          "DELETE",
+        ],
         cachedMethods: ["GET", "HEAD"],
+        defaultTtl: 0,
+        maxTtl: 0,
         minTtl: 0,
-        defaultTtl: 3600,
-        maxTtl: 86400,
-        // AllViewerExceptHostHeader
-        originRequestPolicyId: "b689b0a8-53d0-40ab-baf2-68738e2966ac",
-        // UseOriginCacheControlHeaders
-        cachePolicyId: "83da9c7e-98b4-4e11-a168-04f0df8e2c65",
+        forwardedValues: {
+          cookies: {
+            forward: "none",
+          },
+          headers: ["X-Authorization"],
+          queryString: true,
+        },
+        targetOriginId: `${infraConfigResources.idPrefix}-cdn-bucket-${$app.stage}`,
+        viewerProtocolPolicy: "redirect-to-https",
         responseHeadersPolicyId: presignedUrlCdnResponseHeadersPolicy.id,
-        pathPattern: "/api/*",
-        targetOriginId: albResources.alb.id,
-        viewerProtocolPolicy: "https-only",
-        compress: true,
+        // lambdaFunctionAssociations: [
+        //   {
+        //     lambdaArn: $interpolate`${lambdaResources.basicAuthLambdaEdge.arn}:${lambdaResources.basicAuthLambdaEdge.nodes.function.version}`,
+        //     eventType: "viewer-request",
+        //   },
+        // ],
+        pathPattern: "/upload/*",
+        trustedKeyGroups: [presignedUrlKeyGroup.id],
       },
     ],
     transform: {

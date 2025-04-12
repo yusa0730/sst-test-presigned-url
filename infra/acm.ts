@@ -44,7 +44,7 @@ new aws.acm.CertificateValidation(
 
 const cloudfrontCertificate = new aws.acm.Certificate(`${infraConfigResources.idPrefix}-cloudfront-${$app.stage}`, {
   domainName: infraConfigResources.domainName,
-  subjectAlternativeNames: [`upload.${infraConfigResources.domainName}`],
+  subjectAlternativeNames: [`*.upload.${infraConfigResources.domainName}`],
   validationMethod: "DNS",
   tags: {
     Name: `${infraConfigResources.idPrefix}-${$app.stage}`,
