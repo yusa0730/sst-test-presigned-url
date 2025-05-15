@@ -6,7 +6,7 @@ const albCertificate = new aws.acm.Certificate(
   `${infraConfigResources.idPrefix}-alb-acm-${$app.stage}`,
   {
     domainName: infraConfigResources.domainName,
-    subjectAlternativeNames: [`*.langfuse.${infraConfigResources.domainName}`],
+    subjectAlternativeNames: [`*.alb.${infraConfigResources.domainName}`],
     validationMethod: "DNS",
     tags: {
       Name: `${infraConfigResources.idPrefix}-alb-acm-${$app.stage}`,
@@ -42,19 +42,14 @@ new aws.acm.CertificateValidation(
   }
 );
 
-const cloudfrontCertificate = new aws.acm.Certificate(
-  `${infraConfigResources.idPrefix}-cloudfront-${$app.stage}`,
-  {
-    domainName: infraConfigResources.domainName,
-    subjectAlternativeNames: [
-      `langfuse.${infraConfigResources.domainName}`
-    ],
-    validationMethod: "DNS",
-    tags: {
-      Name: `${infraConfigResources.idPrefix}-${$app.stage}`,
-    },
+const cloudfrontCertificate = new aws.acm.Certificate(`${infraConfigResources.idPrefix}-cloudfront-${$app.stage}`, {
+  domainName: infraConfigResources.domainName,
+  subjectAlternativeNames: [`*.upload.${infraConfigResources.domainName}`],
+  validationMethod: "DNS",
+  tags: {
+    Name: `${infraConfigResources.idPrefix}-${$app.stage}`,
   },
-  {
+}, {
     provider: infraConfigResources.awsUsEast1Provider,
   },
 );
@@ -80,16 +75,12 @@ cloudfrontCertificate.domainValidationOptions.apply((domainValidationOptions) =>
 });
 
 // ACM検証
-new aws.acm.CertificateValidation(
-  `${infraConfigResources.idPrefix}-validation-cloudfront-${$app.stage}`,
-  {
-    certificateArn: cloudfrontCertificate.arn,
-    validationRecordFqdns: cloudfrontRecord.map((r) => r.fqdn),
-  },
-  {
-    provider: infraConfigResources.awsUsEast1Provider,
-  }
-);
+new aws.acm.CertificateValidation(`${infraConfigResources.idPrefix}-validation-cloudfront-${$app.stage}`, {
+  certificateArn: cloudfrontCertificate.arn,
+  validationRecordFqdns: cloudfrontRecord.map((r) => r.fqdn),
+}, {
+  provider: infraConfigResources.awsUsEast1Provider,
+});
 
 export const acmResources = {
   albCertificate,

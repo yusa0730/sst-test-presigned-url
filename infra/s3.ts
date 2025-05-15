@@ -48,26 +48,15 @@ const albConnectionLogBucket = new aws.s3.BucketV2(
 );
 
 // ログバケット
-const cloudFrontLogBucket = new aws.s3.BucketV2(
-  `${infraConfigResources.idPrefix}-cloudfront-log-bucket-${$app.stage}`,
+const presignedUrlCdnLogBucket = new sst.aws.Bucket(
+  `${infraConfigResources.idPrefix}-cdn-log-bucket-${$app.stage}`,
   {
-    bucket: `${infraConfigResources.idPrefix}-cloudfront-log-bucket-${$app.stage}`,
-    forceDestroy: true,
-    policy: $jsonStringify({
-      Version: "2012-10-17",
-      Statement: [
-        {
-          Effect: "Allow",
-          Principal: {
-            AWS: "arn:aws:iam::582318560864:root",
-          },
-          Action: "s3:PutObject",
-          Resource: [
-            `arn:aws:s3:::${infraConfigResources.idPrefix}-cloudfront-log-bucket-${$app.stage}/*`
-          ],
-        }
-      ],
-    }),
+    transform: {
+      bucket: {
+        bucket: `${infraConfigResources.idPrefix}-cdn-log-bucket-${$app.stage}`,
+        forceDestroy: true
+      },
+    },
   },
 );
 
@@ -75,77 +64,57 @@ const cloudFrontLogBucket = new aws.s3.BucketV2(
 new aws.s3.BucketOwnershipControls(
   `${infraConfigResources.idPrefix}-cdn-log-bucket-ownership-controls-${$app.stage}`,
   {
-    bucket: cloudFrontLogBucket.id,
+    bucket: presignedUrlCdnLogBucket.nodes.bucket.id,
     rule: {
       objectOwnership: "BucketOwnerPreferred",
     },
   },
 );
 
-const langfuseBlobBucket = new aws.s3.BucketV2(
-  `${infraConfigResources.idPrefix}-langfuse-blob-bucket-${$app.stage}`,
+const presignedUrlCdnBucket = new aws.s3.BucketV2(
+  `${infraConfigResources.idPrefix}-cdn-bucket-${$app.stage}`,
   {
-    bucket: `${infraConfigResources.idPrefix}-langfuse-blob-bucket-${$app.stage}`,
-    forceDestroy: true,
+    bucket: `${infraConfigResources.idPrefix}-cdn-bucket-${$app.stage}`,
+    forceDestroy: true
   },
 );
 
-// aclの設定
-new aws.s3.BucketOwnershipControls(
-  `${infraConfigResources.idPrefix}-langfuse-blob-bucket-ownership-controls-${$app.stage}`,
+new aws.s3.BucketCorsConfigurationV2(
+  `${infraConfigResources.idPrefix}-cdn-bucket-cors-config-${$app.stage}`,
   {
-    bucket: langfuseBlobBucket.id,
-    rule: {
-      objectOwnership: "BucketOwnerPreferred",
+    bucket: presignedUrlCdnBucket.id,
+    corsRules: [
+      {
+          allowedOrigins: ["*"],
+          allowedMethods: ["GET", "PUT", "POST", "HEAD"],
+          allowedHeaders: ["*"],
+          exposeHeaders: [],
+          maxAgeSeconds: 0,
+      }
+    ],
+  }
+);
+
+// オリジンアクセスコントロールS3
+const presignedUrlCdnOriginAccessControl =
+  new aws.cloudfront.OriginAccessControl(
+    `${infraConfigResources.idPrefix}-cdn-origin-access-control-${$app.stage}`,
+    {
+      name: `${infraConfigResources.idPrefix}-cdn-origin-access-control-${$app.stage}`,
+      description: `${infraConfigResources.idPrefix} presigned url cdn origin access control for ${$app.stage}`,
+      originAccessControlOriginType: "s3",
+      signingBehavior: "always",
+      signingProtocol: "sigv4",
     },
-  },
-);
-
-const langfuseEventBucket = new aws.s3.BucketV2(
-  `${infraConfigResources.idPrefix}-langfuse-event-bucket-${$app.stage}`,
-  {
-    bucket: `${infraConfigResources.idPrefix}-langfuse-event-bucket-${$app.stage}`,
-    forceDestroy: true,
-  },
-);
-
-// aclの設定
-new aws.s3.BucketOwnershipControls(
-  `${infraConfigResources.idPrefix}-langfuse-event-bucket-ownership-controls-${$app.stage}`,
-  {
-    bucket: langfuseEventBucket.id,
-    rule: {
-      objectOwnership: "BucketOwnerPreferred",
+    {
+      dependsOn: [wafResources.presignedUrlCdnWaf],
     },
-  },
-);
-
-const langfuseClickhouseBucket = new aws.s3.BucketV2(
-  `${infraConfigResources.idPrefix}-langfuse-clickhouse-bucket-${$app.stage}`,
-  {
-    bucket: `${infraConfigResources.idPrefix}-langfuse-clickhouse-bucket-${$app.stage}`,
-    forceDestroy: true,
-  },
-);
-
-// aclの設定
-new aws.s3.BucketOwnershipControls(
-  `${infraConfigResources.idPrefix}-langfuse-clickhouse-bucket-ownership-controls-${$app.stage}`,
-  {
-    bucket: langfuseClickhouseBucket.id,
-    rule: {
-      objectOwnership: "BucketOwnerPreferred",
-    },
-  },
-);
-
-// langfuse用のS3バケットを作成
+  );
 
 export const s3Resources = {
   albAccessLogBucket,
   albConnectionLogBucket,
-  cloudFrontLogBucket,
-  langfuseBlobBucket,
-  langfuseEventBucket,
-  langfuseClickhouseBucket
+  presignedUrlCdnBucket,
+  presignedUrlCdnLogBucket,
+  presignedUrlCdnOriginAccessControl,
 };

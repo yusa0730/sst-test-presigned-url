@@ -1,7 +1,7 @@
 import { infraConfigResources } from "./infra-config";
 
 // Wafカスタムルールを作成
-const cdnWafCustomRule = new aws.wafv2.RuleGroup(
+const presignedUrlCdnWafCustomRule = new aws.wafv2.RuleGroup(
   `${infraConfigResources.idPrefix}-cdn-waf-custom-rule-${$app.stage}`,
   {
     name: `${infraConfigResources.idPrefix}-cdn-waf-custom-rule-${$app.stage}`,
@@ -51,7 +51,7 @@ const cdnWafCustomRule = new aws.wafv2.RuleGroup(
 );
 
 // Wafを作成
-const cdnWaf = new aws.wafv2.WebAcl(
+const presignedUrlCdnWaf = new aws.wafv2.WebAcl(
   `${infraConfigResources.idPrefix}-cdn-waf-${$app.stage}`,
   {
     name: `${infraConfigResources.idPrefix}-cdn-waf-${$app.stage}`,
@@ -74,7 +74,7 @@ const cdnWaf = new aws.wafv2.WebAcl(
         },
         statement: {
           ruleGroupReferenceStatement: {
-            arn: cdnWafCustomRule.arn,
+            arn: presignedUrlCdnWafCustomRule.arn,
           },
         },
         visibilityConfig: {
@@ -121,10 +121,10 @@ const cdnWaf = new aws.wafv2.WebAcl(
   },
   {
     provider: infraConfigResources.awsUsEast1Provider,
-    dependsOn: [cdnWafCustomRule],
+    dependsOn: [presignedUrlCdnWafCustomRule],
   },
 );
 
 export const wafResources = {
-  cdnWaf,
+  presignedUrlCdnWaf,
 };
