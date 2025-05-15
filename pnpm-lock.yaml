@@ -11,6 +11,12 @@ importers:
       '@pulumi/aws':
         specifier: ^6.67.0
         version: 6.68.0(typescript@5.7.3)
+      '@pulumi/pulumi':
+        specifier: ^3.167.0
+        version: 3.167.0(typescript@5.7.3)
+      '@pulumi/random':
+        specifier: ^4.18.2
+        version: 4.18.2(typescript@5.7.3)
       '@remix-run/node':
         specifier: ^2.15.2
         version: 2.15.3(typescript@5.7.3)
@@ -749,10 +755,6 @@ packages:
     resolution: {integrity: sha512-lp4qAiMTD4sNWW4DbKLBkfiMZ4jbAboJIGOQr5DvciMRI494OapieI9qiODpOt0XBr1LjIDy1xAGAnVs5supTA==}
     engines: {node: '>=14'}
 
-  '@opentelemetry/semantic-conventions@1.29.0':
-    resolution: {integrity: sha512-KZ1JsXcP2pqunfsJBNk+py6AJ5R6ZJ3yvM5Lhhf93rHPHvdDzgfMYPS4F7GNO3j/MVDCtfbttrkcpu7sl0Wu/Q==}
-    engines: {node: '>=14'}
-
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
@@ -790,8 +792,8 @@ packages:
   '@pulumi/aws@6.68.0':
     resolution: {integrity: sha512-uehJNSviSq3garkLXsy1zZzI7V6clBDQq8G83PSpNfdePdGeKtuRoxMSsuqkgpGkue+cGjoxJtC6QwdtzgaKBQ==}
 
-  '@pulumi/pulumi@3.149.0':
-    resolution: {integrity: sha512-04B7//mng19nq5loBHJPcXbXP+m55df4kJqddkoTT4cSHIzwyZS+mvdaGnukT08XQF7JqGPkmzMEz+rfAilCfQ==}
+  '@pulumi/pulumi@3.167.0':
+    resolution: {integrity: sha512-nqqG9ya86CO8eRpPSL34K0NWhQbH2hXAlVo+lCvi7I51nKFqaJITvfgfVEqwKU0g3KJspK8ZG0/1OZBRe0Dogg==}
     engines: {node: '>=18'}
     peerDependencies:
       ts-node: '>= 7.0.1 < 12'
@@ -802,8 +804,8 @@ packages:
       typescript:
         optional: true
 
-  '@pulumi/query@0.3.0':
-    resolution: {integrity: sha512-xfo+yLRM2zVjVEA4p23IjQWzyWl1ZhWOGobsBqRpIarzLvwNH/RAGaoehdxlhx4X92302DrpdIFgTICMN4P38w==}
+  '@pulumi/random@4.18.2':
+    resolution: {integrity: sha512-jC0HfgkFKwgUGmocM7Tw6UyOrpLFXGO8kYfV6f5Q9R/yziaVxEVPQ0Uup2HfosDh926EZHJrt2EUIJHWCyOvFA==}
 
   '@remix-run/dev@2.15.3':
     resolution: {integrity: sha512-agndQJHs7qISPXXH/Zet0VHWvcwtQGoEOXxltjerNQ2zWcAJQBm9i06tS6n6v/ZP0sHIVdo/IsvgAA4wetqmNw==}
@@ -4907,8 +4909,6 @@ snapshots:
 
   '@opentelemetry/semantic-conventions@1.28.0': {}
 
-  '@opentelemetry/semantic-conventions@1.29.0': {}
-
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
@@ -4937,7 +4937,7 @@ snapshots:
 
   '@pulumi/aws@6.68.0(typescript@5.7.3)':
     dependencies:
-      '@pulumi/pulumi': 3.149.0(typescript@5.7.3)
+      '@pulumi/pulumi': 3.167.0(typescript@5.7.3)
       mime: 2.6.0
     transitivePeerDependencies:
       - bluebird
@@ -4945,7 +4945,7 @@ snapshots:
       - ts-node
       - typescript
 
-  '@pulumi/pulumi@3.149.0(typescript@5.7.3)':
+  '@pulumi/pulumi@3.167.0(typescript@5.7.3)':
     dependencies:
       '@grpc/grpc-js': 1.12.6
       '@logdna/tail-file': 2.2.0
@@ -4957,8 +4957,6 @@ snapshots:
       '@opentelemetry/resources': 1.30.1(@opentelemetry/api@1.9.0)
       '@opentelemetry/sdk-trace-base': 1.30.1(@opentelemetry/api@1.9.0)
       '@opentelemetry/sdk-trace-node': 1.30.1(@opentelemetry/api@1.9.0)
-      '@opentelemetry/semantic-conventions': 1.29.0
-      '@pulumi/query': 0.3.0
       '@types/google-protobuf': 3.15.12
       '@types/semver': 7.5.8
       '@types/tmp': 0.2.6
@@ -4983,7 +4981,14 @@ snapshots:
       - bluebird
       - supports-color
 
-  '@pulumi/query@0.3.0': {}
+  '@pulumi/random@4.18.2(typescript@5.7.3)':
+    dependencies:
+      '@pulumi/pulumi': 3.167.0(typescript@5.7.3)
+    transitivePeerDependencies:
+      - bluebird
+      - supports-color
+      - ts-node
+      - typescript
 
   '@remix-run/dev@2.15.3(@remix-run/react@2.15.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.7.3))(@remix-run/serve@2.15.3(typescript@5.7.3))(@types/node@22.14.0)(typescript@5.7.3)(vite@5.4.14(@types/node@22.14.0))':
     dependencies:

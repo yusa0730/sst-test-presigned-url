@@ -4,8 +4,14 @@ import { cloudwatchResources } from "./cloudwatch";
 
 console.log("======vpc.ts start======");
 const publicSubnets = [];
-const privateSubnets = [];
-const protectedSubnets = [];
+const albProtectedSubnets = [];
+const ecsProtectedSubnets = [];
+const webServerProtectedSubnets = [];
+const asyncWorkerProtectedSubnets = [];
+const clickHouseProtectedSubnets = [];
+const bastionProtectedSubnets = [];
+const elasticachePrivateSubnets = [];
+const auroraServerlessPrivateSubnets = [];
 
 const vpc = new aws.ec2.Vpc(
   `${infraConfigResources.idPrefix}-vpc-${$app.stage}`,
@@ -123,28 +129,277 @@ const natGateway1a = new aws.ec2.NatGateway(
   },
 );
 
-// const eip1c = new aws.ec2.Eip(
-//   `${infraConfigResources.idPrefix}-eip-1c-${$app.stage}`,
+if ($app.stage !== "production") {
+  const eip1c = new aws.ec2.Eip(
+    `${infraConfigResources.idPrefix}-eip-1c-${$app.stage}`,
+    {
+      domain: "vpc",
+      tags: {
+        Name: `${infraConfigResources.idPrefix}-eip-1c-${$app.stage}`,
+      }
+    }
+  );
+
+  const natGateway1c = new aws.ec2.NatGateway(
+    `${infraConfigResources.idPrefix}-ngw-1c-${$app.stage}`,
+    {
+      allocationId: eip1c.id,
+      subnetId: publicSubnet1c.id,
+      tags: {
+        Name: `${infraConfigResources.idPrefix}-ngw-1c-${$app.stage}`,
+      }
+    }
+  );
+}
+
+const protectedRouteTable1a = new aws.ec2.RouteTable(
+  `${infraConfigResources.idPrefix}-protected-rtb-1a-${$app.stage}`,
+  {
+    vpcId: vpc.id,
+    tags: {
+      Name: `${infraConfigResources.idPrefix}-protected-rtb-1a-${$app.stage}`
+    }
+  }
+);
+
+const protectedRouteTable1c = new aws.ec2.RouteTable(
+  `${infraConfigResources.idPrefix}-protected-rtb-1c-${$app.stage}`,
+  {
+    vpcId: vpc.id,
+    tags: {
+      Name: `${infraConfigResources.idPrefix}-protected-rtb-1c-${$app.stage}`
+    }
+  }
+);
+
+new aws.ec2.Route(
+  `${infraConfigResources.idPrefix}-protected-default-route-1a-${$app.stage}`,
+  {
+    routeTableId: protectedRouteTable1a.id,
+    gatewayId: natGateway1a.id,
+    destinationCidrBlock: "0.0.0.0/0"
+  }
+)
+
+new aws.ec2.Route(
+  `${infraConfigResources.idPrefix}-protected-default-route-1c-${$app.stage}`,
+  {
+    routeTableId: protectedRouteTable1c.id,
+    gatewayId: natGateway1a.id, // テスト用でnatを一つだけ利用したいため
+    destinationCidrBlock: "0.0.0.0/0"
+  }
+)
+
+// // 本番用
+// new aws.ec2.Route(
+//   `${infraConfigResources.idPrefix}-protected-default-route-1a-${$app.stage}`,
 //   {
-//     domain: "vpc",
-//     tags: {
-//       Name: `${infraConfigResources.idPrefix}-eip-1c-${$app.stage}`,
-//     }
+//     routeTableId: protectedRouteTable1c.id,
+//     gatewayId: natGateway1c.id,
+//     destinationCidrBlock: "0.0.0.0/0"
 //   }
-// );
+// )
 
-// const natGateway1c = new aws.ec2.NatGateway(
-//   `${infraConfigResources.idPrefix}-ngw-1c-${$app.stage}`,
-//   {
-//     allocationId: eip1c.id,
-//     subnetId: publicSubnet1a.id,
-//     tags: {
-//       Name: `${infraConfigResources.idPrefix}-ngw-1c-${$app.stage}`,
-//     },
-//   },
-// );
+// =======alb network========
+const albProtectedSubnet1a = new aws.ec2.Subnet(
+  `${infraConfigResources.idPrefix}-alb-protected-subnet-1a-${$app.stage}`,
+  {
+    vpcId: vpc.id,
+    cidrBlock: `10.0.10.0/24`,
+    availabilityZone: "ap-northeast-1a",
+    tags: {
+      Name: `${infraConfigResources.idPrefix}-alb-protected-subnet-1a-${$app.stage}`
+    }
+  }
+);
+albProtectedSubnets.push(albProtectedSubnet1a);
 
-// private
+new aws.ec2.RouteTableAssociation(
+  `${infraConfigResources.idPrefix}-alb-protected-route-table-association-1a-${$app.stage}`,
+  {
+    routeTableId: protectedRouteTable1a.id,
+    subnetId: albProtectedSubnet1a.id
+  }
+);
+
+const albProtectedSubnet1c = new aws.ec2.Subnet(
+  `${infraConfigResources.idPrefix}-alb-protected-subnet-1c-${$app.stage}`,
+  {
+    vpcId: vpc.id,
+    cidrBlock: `10.0.11.0/24`,
+    availabilityZone: "ap-northeast-1c",
+    tags: {
+      Name: `${infraConfigResources.idPrefix}-alb-protected-subnet-1c-${$app.stage}`
+    }
+  }
+);
+albProtectedSubnets.push(albProtectedSubnet1c);
+
+new aws.ec2.RouteTableAssociation(
+  `${infraConfigResources.idPrefix}-alb-protected-route-table-association-1c-${$app.stage}`,
+  {
+    routeTableId: protectedRouteTable1c.id,
+    subnetId: albProtectedSubnet1c.id
+  }
+);
+
+// =======web server network========
+const webServerProtectedSubnet1a = new aws.ec2.Subnet(
+  `${infraConfigResources.idPrefix}-web-server-protected-subnet-1a-${$app.stage}`,
+  {
+    vpcId: vpc.id,
+    cidrBlock: `10.0.20.0/24`,
+    availabilityZone: "ap-northeast-1a",
+    tags: {
+      Name: `${infraConfigResources.idPrefix}-web-server-protected-subnet-1a-${$app.stage}`
+    }
+  }
+);
+webServerProtectedSubnets.push(webServerProtectedSubnet1a);
+ecsProtectedSubnets.push(webServerProtectedSubnet1a);
+
+new aws.ec2.RouteTableAssociation(
+  `${infraConfigResources.idPrefix}-web-server-protected-route-table-association-1a-${$app.stage}`,
+  {
+    routeTableId: protectedRouteTable1a.id,
+    subnetId: webServerProtectedSubnet1a.id
+  }
+);
+
+const webServerProtectedSubnet1c = new aws.ec2.Subnet(
+  `${infraConfigResources.idPrefix}-web-server-protected-subnet-1c-${$app.stage}`,
+  {
+    vpcId: vpc.id,
+    cidrBlock: `10.0.21.0/24`,
+    availabilityZone: "ap-northeast-1c",
+    tags: {
+      Name: `${infraConfigResources.idPrefix}-web-server-protected-subnet-1c-${$app.stage}`
+    }
+  }
+);
+webServerProtectedSubnets.push(webServerProtectedSubnet1c);
+ecsProtectedSubnets.push(webServerProtectedSubnet1c);
+
+new aws.ec2.RouteTableAssociation(
+  `${infraConfigResources.idPrefix}-web-server-protected-route-table-association-1c-${$app.stage}`,
+  {
+    routeTableId: protectedRouteTable1c.id,
+    subnetId: webServerProtectedSubnet1c.id
+  }
+);
+
+// =======async worker network========
+const asyncWorkerProtectedSubnet1a = new aws.ec2.Subnet(
+  `${infraConfigResources.idPrefix}-async-worker-protected-subnet-1a-${$app.stage}`,
+  {
+    vpcId: vpc.id,
+    cidrBlock: `10.0.30.0/24`,
+    availabilityZone: "ap-northeast-1a",
+    tags: {
+      Name: `${infraConfigResources.idPrefix}-async-worker-protected-subnet-1a-${$app.stage}`
+    }
+  }
+);
+asyncWorkerProtectedSubnets.push(asyncWorkerProtectedSubnet1a);
+
+new aws.ec2.RouteTableAssociation(
+  `${infraConfigResources.idPrefix}-async-worker-protected-route-table-association-1a-${$app.stage}`,
+  {
+    routeTableId: protectedRouteTable1a.id,
+    subnetId: asyncWorkerProtectedSubnet1a.id
+  }
+);
+
+const asyncWorkerProtectedSubnet1c = new aws.ec2.Subnet(
+  `${infraConfigResources.idPrefix}-async-worker-protected-subnet-1c-${$app.stage}`,
+  {
+    vpcId: vpc.id,
+    cidrBlock: `10.0.31.0/24`,
+    availabilityZone: "ap-northeast-1c",
+    tags: {
+      Name: `${infraConfigResources.idPrefix}-async-worker-protected-subnet-1c-${$app.stage}`
+    }
+  }
+);
+asyncWorkerProtectedSubnets.push(asyncWorkerProtectedSubnet1c);
+ecsProtectedSubnets.push(asyncWorkerProtectedSubnet1c);
+
+new aws.ec2.RouteTableAssociation(
+  `${infraConfigResources.idPrefix}-async-worker-protected-route-table-association-1c-${$app.stage}`,
+  {
+    routeTableId: protectedRouteTable1c.id,
+    subnetId: asyncWorkerProtectedSubnet1c.id
+  }
+);
+
+// =======click house network========
+const clickHouseProtectedSubnet1a = new aws.ec2.Subnet(
+  `${infraConfigResources.idPrefix}-clickhouse-protected-subnet-1a-${$app.stage}`,
+  {
+    vpcId: vpc.id,
+    cidrBlock: `10.0.40.0/24`,
+    availabilityZone: "ap-northeast-1a",
+    tags: {
+      Name: `${infraConfigResources.idPrefix}-clickhouse-protected-subnet-1a-${$app.stage}`
+    }
+  }
+);
+clickHouseProtectedSubnets.push(clickHouseProtectedSubnet1a);
+ecsProtectedSubnets.push(clickHouseProtectedSubnet1a);
+
+new aws.ec2.RouteTableAssociation(
+  `${infraConfigResources.idPrefix}-clickhouse-protected-route-table-association-1a-${$app.stage}`,
+  {
+    routeTableId: protectedRouteTable1a.id,
+    subnetId: clickHouseProtectedSubnet1a.id
+  }
+);
+
+const clickHouseProtectedSubnet1c = new aws.ec2.Subnet(
+  `${infraConfigResources.idPrefix}-clickhouse-protected-subnet-1c-${$app.stage}`,
+  {
+    vpcId: vpc.id,
+    cidrBlock: `10.0.41.0/24`,
+    availabilityZone: "ap-northeast-1c",
+    tags: {
+      Name: `${infraConfigResources.idPrefix}-clickhouse-protected-subnet-1c-${$app.stage}`
+    }
+  }
+);
+clickHouseProtectedSubnets.push(clickHouseProtectedSubnet1c);
+ecsProtectedSubnets.push(clickHouseProtectedSubnet1c);
+
+new aws.ec2.RouteTableAssociation(
+  `${infraConfigResources.idPrefix}-clickhouse-protected-route-table-association-1c-${$app.stage}`,
+  {
+    routeTableId: protectedRouteTable1c.id,
+    subnetId: clickHouseProtectedSubnet1c.id
+  }
+);
+
+// bastion用
+const bastionProtectedSubnet1a = new aws.ec2.Subnet(
+  `${infraConfigResources.idPrefix}-bastion-protected-subnet-1a-${$app.stage}`,
+  {
+    vpcId: vpc.id,
+    cidrBlock: `10.0.45.0/24`,
+    availabilityZone: "ap-northeast-1a",
+    tags: {
+      Name: `${infraConfigResources.idPrefix}-bastion-protected-subnet-1a-${$app.stage}`
+    }
+  }
+);
+bastionProtectedSubnets.push(bastionProtectedSubnet1a);
+
+new aws.ec2.RouteTableAssociation(
+  `${infraConfigResources.idPrefix}-bastion-protected-route-table-association-1c-${$app.stage}`,
+  {
+    routeTableId: protectedRouteTable1a.id,
+    subnetId: bastionProtectedSubnet1a.id
+  }
+);
+
+// ========private========
 const privateRouteTable1a = new aws.ec2.RouteTable(
   `${infraConfigResources.idPrefix}-private-rtb-1a-${$app.stage}`,
   {
@@ -165,150 +420,119 @@ const privateRouteTable1c = new aws.ec2.RouteTable(
   }
 );
 
-const privateSubnet1a = new aws.ec2.Subnet(
-  `${infraConfigResources.idPrefix}-private-subnet-1a-${$app.stage}`,
+// =======elasticache network========
+const elasticachePrivateSubnet1a = new aws.ec2.Subnet(
+  `${infraConfigResources.idPrefix}-elasticache-private-subnet-1a-${$app.stage}`,
   {
     vpcId: vpc.id,
-    cidrBlock: `10.0.10.0/24`,
+    cidrBlock: `10.0.50.0/24`,
     availabilityZone: "ap-northeast-1a",
     tags: {
-      Name: `${infraConfigResources.idPrefix}-private-subnet-1a-${$app.stage}`
+      Name: `${infraConfigResources.idPrefix}-elasticache-private-subnet-1a-${$app.stage}`
     }
   }
 );
-privateSubnets.push(privateSubnet1a);
+elasticachePrivateSubnets.push(elasticachePrivateSubnet1a);
 
 new aws.ec2.RouteTableAssociation(
-  `${infraConfigResources.idPrefix}-private-route-table-association-1a-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-elasticache-private-route-table-association-1a-${$app.stage}`,
   {
     routeTableId: privateRouteTable1a.id,
-    subnetId: privateSubnet1a.id
+    subnetId: elasticachePrivateSubnet1a.id
   }
 );
 
-const privateSubnet1c = new aws.ec2.Subnet(
-  `${infraConfigResources.idPrefix}-private-subnet-1c-${$app.stage}`,
+const elasticachePrivateSubnet1c = new aws.ec2.Subnet(
+  `${infraConfigResources.idPrefix}-elasticache-private-subnet-1c-${$app.stage}`,
   {
     vpcId: vpc.id,
-    cidrBlock: `10.0.11.0/24`,
+    cidrBlock: `10.0.51.0/24`,
     availabilityZone: "ap-northeast-1c",
     tags: {
-      Name: `${infraConfigResources.idPrefix}-private-subnet-1c-${$app.stage}`
+      Name: `${infraConfigResources.idPrefix}-elasticache-private-subnet-1c-${$app.stage}`
     }
   }
 );
-privateSubnets.push(privateSubnet1c);
+elasticachePrivateSubnets.push(elasticachePrivateSubnet1c);
 
 new aws.ec2.RouteTableAssociation(
-  `${infraConfigResources.idPrefix}-private-route-table-association-1c-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-elasticache-private-route-table-association-1c-${$app.stage}`,
   {
     routeTableId: privateRouteTable1c.id,
-    subnetId: privateSubnet1c.id
+    subnetId: elasticachePrivateSubnet1c.id
   }
 );
 
-// 署名付きURLに接続する際のテスト用
-// new aws.ec2.Route(
-//   `${infraConfigResources.idPrefix}-private-default-route-1a-${$app.stage}`,
-//   {
-//     routeTableId: privateRouteTable1a.id,
-//     natGatewayId: natGateway1a.id,
-//     destinationCidrBlock: "0.0.0.0/0"
-//   }
-// )
-
-// new aws.ec2.Route(
-//   `${infraConfigResources.idPrefix}-private-default-route-1c-${$app.stage}`,
-//   {
-//     routeTableId: privateRouteTable1c.id,
-//     natGatewayId: natGateway1a.id,
-//     destinationCidrBlock: "0.0.0.0/0"
-//   }
-// )
-
-const protectedRouteTable1a = new aws.ec2.RouteTable(
-  `${infraConfigResources.idPrefix}-protected-rtb-1a-${$app.stage}`,
+// =======aurora serverless network========
+const auroraServerlessPrivateSubnet1a = new aws.ec2.Subnet(
+  `${infraConfigResources.idPrefix}-aurora-serverless-private-subnet-1a-${$app.stage}`,
   {
     vpcId: vpc.id,
-    tags: {
-      Name: `${infraConfigResources.idPrefix}-protected-rtb-1a-${$app.stage}`
-    }
-  }
-);
-
-new aws.ec2.Route(
-  `${infraConfigResources.idPrefix}-protected-default-route-1a-${$app.stage}`,
-  {
-    routeTableId: protectedRouteTable1a.id,
-    gatewayId: natGateway1a.id,
-    destinationCidrBlock: "0.0.0.0/0"
-  }
-)
-
-const protectedRouteTable1c = new aws.ec2.RouteTable(
-  `${infraConfigResources.idPrefix}-protected-rtb-1c-${$app.stage}`,
-  {
-    vpcId: vpc.id,
-    tags: {
-      Name: `${infraConfigResources.idPrefix}-protected-rtb-1c-${$app.stage}`
-    }
-  }
-);
-
-new aws.ec2.Route(
-  `${infraConfigResources.idPrefix}-protected-default-route-1c-${$app.stage}`,
-  {
-    routeTableId: protectedRouteTable1c.id,
-    gatewayId: natGateway1a.id,
-    destinationCidrBlock: "0.0.0.0/0"
-  }
-)
-
-const protectedSubnet1a = new aws.ec2.Subnet(
-  `${infraConfigResources.idPrefix}-protected-subnet-1a-${$app.stage}`,
-  {
-    vpcId: vpc.id,
-    cidrBlock: `10.0.20.0/24`,
+    cidrBlock: `10.0.60.0/24`,
     availabilityZone: "ap-northeast-1a",
     tags: {
-      Name: `${infraConfigResources.idPrefix}-protected-subnet-1a-${$app.stage}`
+      Name: `${infraConfigResources.idPrefix}-aurora-serverless-private-subnet-1a-${$app.stage}`
     }
   }
 );
-protectedSubnets.push(protectedSubnet1a);
+auroraServerlessPrivateSubnets.push(auroraServerlessPrivateSubnet1a);
 
 new aws.ec2.RouteTableAssociation(
-  `${infraConfigResources.idPrefix}-protected-route-table-association-1a-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-aurora-serverless-private-route-table-association-1a-${$app.stage}`,
   {
-    routeTableId: protectedRouteTable1a.id,
-    subnetId: protectedSubnet1a.id
+    routeTableId: privateRouteTable1a.id,
+    subnetId: auroraServerlessPrivateSubnet1a.id
   }
 );
 
-const protectedSubnet1c = new aws.ec2.Subnet(
-  `${infraConfigResources.idPrefix}-protected-subnet-1c-${$app.stage}`,
+const auroraServerlessPrivateSubnet1c = new aws.ec2.Subnet(
+  `${infraConfigResources.idPrefix}-aurora-serverless-private-subnet-1c-${$app.stage}`,
   {
     vpcId: vpc.id,
-    cidrBlock: `10.0.21.0/24`,
+    cidrBlock: `10.0.61.0/24`,
     availabilityZone: "ap-northeast-1c",
     tags: {
-      Name: `${infraConfigResources.idPrefix}-protected-subnet-1c-${$app.stage}`
+      Name: `${infraConfigResources.idPrefix}-aurora-serverless-private-subnet-1c-${$app.stage}`
     }
   }
 );
-protectedSubnets.push(protectedSubnet1c);
+auroraServerlessPrivateSubnets.push(auroraServerlessPrivateSubnet1c);
 
 new aws.ec2.RouteTableAssociation(
-  `${infraConfigResources.idPrefix}-protected-route-table-association-1c-${$app.stage}`,
+  `${infraConfigResources.idPrefix}-aurora-serverless-private-route-table-association-1c-${$app.stage}`,
   {
-    routeTableId: protectedRouteTable1c.id,
-    subnetId: protectedSubnet1c.id
+    routeTableId: privateRouteTable1c.id,
+    subnetId: auroraServerlessPrivateSubnet1c.id
   }
 );
+
+// ======vpc endpoint=======
+const vpcEndpointS3Gateway = new aws.ec2.VpcEndpoint(
+  `${infraConfigResources.idPrefix}-vpc-endpoint-s3-gateway-${$app.stage}`,
+  {
+    vpcId: vpc.id,
+    serviceName: `com.amazonaws.${infraConfigResources.mainRegion}.s3`,
+    privateDnsEnabled: false,
+    routeTableIds: [
+      protectedRouteTable1a.id,
+      protectedRouteTable1c.id
+    ],
+    vpcEndpointType: "Gateway",
+    tags: {
+      Name: `${infraConfigResources.idPrefix}-vpc-endpoint-s3-gateway-${$app.stage}`,
+    },
+});
 
 export const vpcResources = {
   vpc,
   publicSubnets,
-  privateSubnets,
-  protectedSubnets
+  albProtectedSubnets,
+  ecsProtectedSubnets,
+  webServerProtectedSubnets,
+  asyncWorkerProtectedSubnets,
+  clickHouseProtectedSubnets,
+  bastionProtectedSubnets,
+  elasticachePrivateSubnets,
+  auroraServerlessPrivateSubnets,
+  vpcEndpointS3Gateway,
 };
