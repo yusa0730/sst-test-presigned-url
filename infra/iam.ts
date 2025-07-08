@@ -61,6 +61,29 @@ const taskExecutionRole = new aws.iam.Role(
     managedPolicyArns: [
       "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
     ],
+    inlinePolicies: [
+      {
+        name: `${infraConfigResources.idPrefix}-task-execution-iap-${$app.stage}`,
+        policy: $jsonStringify({
+          Version: "2012-10-17",
+          Statement: [
+            {
+              Effect: "Allow",
+              Action: [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+                "logs:DescribeLogGroups",
+                "logs:DescribeLogStreams",
+                "ssm:GetParameters",
+                "ssm:GetParameter",
+              ],
+              Resource: ["*"],
+            }
+          ],
+        }),
+      },
+    ],
     tags: {
       Name: `${infraConfigResources.idPrefix}-task-execution-role-${$app.stage}`,
     },

@@ -98,6 +98,24 @@ ecrResources.repository.repositoryUrl.apply((url) => {
                 {
                   name: "PRIVATE_KEY",
                   value: $resolve(infraConfigResources.privateKey.value).apply(value => value),
+                },
+                {
+                  name: "NEW_RELIC_HOST",
+                  value: "collector.newrelic.com"
+                },
+                {
+                  name: "NEW_RELIC_APP_NAME",
+                  value: "sst-test-presigned-url-production"
+                },
+                {
+                  name: "NEW_RELIC_LOG",
+                  value: "stdout"
+                },
+              ],
+              secrets: [
+                {
+                  name: "NEW_RELIC_LICENSE_KEY",
+                  valueFrom: "arn:aws:ssm:ap-northeast-1:218317313594:parameter/newrelic/passkey/license"
                 }
               ],
             },
