@@ -26,11 +26,11 @@ const vpcOriginForAlb = new aws.cloudfront.VpcOrigin(
             quantity: 1,
         },
     },
-    timeouts: {
-      create: "300s",
-      delete: "300s",
-      update: "300s",
-    },
+    // timeouts: {
+    //   create: "300s",
+    //   delete: "300s",
+    //   update: "300s",
+    // },
     tags: {
         Name: `${infraConfigResources.idPrefix}-vpc-origin-${$app.stage}`,
     },
