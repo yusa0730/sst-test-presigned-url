@@ -79,6 +79,8 @@ const presignedUrlCdnBucket = new aws.s3.BucketV2(
   },
 );
 
+console.log("====presignedUrlCdnBucket====", presignedUrlCdnBucket.bucketRegionalDomainName);
+
 new aws.s3.BucketCorsConfigurationV2(
   `${infraConfigResources.idPrefix}-cdn-bucket-cors-config-${$app.stage}`,
   {

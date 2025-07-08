@@ -5,6 +5,13 @@ import { lambdaResources } from "./lambda";
 import { acmResources } from "./acm";
 import { albResources } from "./alb";
 
+
+console.log("========cloudfront.tsスタート==========");
+
+s3Resources.presignedUrlCdnBucket.bucketRegionalDomainName.apply((domain) => {
+  console.log("bucketRegionalDomainName", domain);
+});
+
 const vpcOriginForAlb = new aws.cloudfront.VpcOrigin(
   `${infraConfigResources.idPrefix}-vpc-origin-${$app.stage}`,
   {
@@ -97,7 +104,7 @@ const presignedUrlCdn = new sst.aws.Cdn(
         originId: `${infraConfigResources.idPrefix}-cdn-bucket-${$app.stage}`,
         originAccessControlId:
           s3Resources.presignedUrlCdnOriginAccessControl.id,
-        domainName: s3Resources.presignedUrlCdnBucket.bucketDomainName,
+        domainName: s3Resources.presignedUrlCdnBucket.bucketRegionalDomainName,
       },
       {
         originId: albResources.alb.id,
@@ -113,7 +120,7 @@ const presignedUrlCdn = new sst.aws.Cdn(
         }],
       }
     ],
-    defaultCacheBehavior: 
+    defaultCacheBehavior:
     {
       allowedMethods: ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"],
       cachedMethods: ["GET", "HEAD"],
@@ -131,6 +138,7 @@ const presignedUrlCdn = new sst.aws.Cdn(
     },
     orderedCacheBehaviors: [
       {
+        pathPattern: "/upload/*",
         allowedMethods: [
           "GET",
           "HEAD",
@@ -141,16 +149,10 @@ const presignedUrlCdn = new sst.aws.Cdn(
           "DELETE",
         ],
         cachedMethods: ["GET", "HEAD"],
-        defaultTtl: 0,
-        maxTtl: 0,
-        minTtl: 0,
-        forwardedValues: {
-          cookies: {
-            forward: "none",
-          },
-          headers: ["X-Authorization"],
-          queryString: true,
-        },
+        // Managed-CORS-S3Origin
+        originRequestPolicyId: "88a5eaf4-2fd4-4709-b370-b4c650ea3fcf",
+        // Managed-CachingOptimized
+        cachePolicyId: "658327ea-f89d-4fab-a63d-7e88639e58f6",
         targetOriginId: `${infraConfigResources.idPrefix}-cdn-bucket-${$app.stage}`,
         viewerProtocolPolicy: "redirect-to-https",
         responseHeadersPolicyId: presignedUrlCdnResponseHeadersPolicy.id,
@@ -160,7 +162,7 @@ const presignedUrlCdn = new sst.aws.Cdn(
         //     eventType: "viewer-request",
         //   },
         // ],
-        pathPattern: "/upload/*",
+        compress: true,
         trustedKeyGroups: [presignedUrlKeyGroup.id],
       },
     ],
