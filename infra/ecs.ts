@@ -64,7 +64,7 @@ ecrResources.repository.repositoryUrl.apply((url) => {
           forceNewDeployment: true,
           loadBalancers: [
             {
-              containerName: `${infraConfigResources.idPrefix}-service-${$app.stage}`,
+              containerName: `${infraConfigResources.idPrefix}-hono-app-${$app.stage}`,
               containerPort: 3000,
               targetGroupArn: albResources.targetGroup.arn,
             },
@@ -74,7 +74,7 @@ ecrResources.repository.repositoryUrl.apply((url) => {
           executionRoleArn: iamResources.taskExecutionRole.arn,
           containerDefinitions: $jsonStringify([
             {
-              name: `${infraConfigResources.idPrefix}-service-${$app.stage}`,
+              name: `${infraConfigResources.idPrefix}-hono-app-${$app.stage}`,
               image: `${infraConfigResources.awsAccountId}.dkr.ecr.${infraConfigResources.mainRegion}.amazonaws.com/${infraConfigResources.idPrefix}-ecr-repository-${$app.stage}:latest`,
               portMappings: [
                 {
@@ -87,7 +87,7 @@ ecrResources.repository.repositoryUrl.apply((url) => {
                 options: {
                   "awslogs-region": infraConfigResources.mainRegion,
                   "awslogs-group": cloudwatchResources.ecsLog.id,
-                  "awslogs-stream-prefix": "backend",
+                  "awslogs-stream-prefix": "hono-app",
                 },
               },
               environment: [
@@ -119,6 +119,41 @@ ecrResources.repository.repositoryUrl.apply((url) => {
                 }
               ],
             },
+            {
+              name: `${infraConfigResources.idPrefix}-new-relic-container-${$app.stage}`,
+              image: "public.ecr.aws/newrelic/nri-ecs:1.11.10",
+              cpu: 256,                     // ≒ 0.25 vCPU
+              memoryReservation: 512,       // 512 MiB で十分
+              logConfiguration: {
+                logDriver: "awslogs",
+                options: {
+                  "awslogs-region": infraConfigResources.mainRegion,
+                  "awslogs-group": cloudwatchResources.ecsTaskSideCarLog.id,
+                  "awslogs-stream-prefix": "hono-app"
+                }
+              },
+              environment: [
+                { name: "FARGATE", value: "true" },
+                { name: "NRIA_IS_FORWARD_ONLY", value: "true" },
+                {
+                  // アプリ側や他のコンテナのメタデータをそのまま受け渡す指定
+                  name: "NRIA_PASSTHROUGH_ENVIRONMENT",
+                  value: "ECS_CONTAINER_METADATA_URI,ECS_CONTAINER_METADATA_URI_V4,FARGATE"
+                },
+                {
+                  // 独自属性（任意）：デプロイ手段などを付けたい時に利用
+                  name: "NRIA_CUSTOM_ATTRIBUTES",
+                  value: "{\"nrDeployMethod\":\"sst\"}"
+                }
+              ],
+              secrets: [
+                {
+                  name: "NRIA_LICENSE_KEY",
+                  /* ライセンスキーを同じ SSM パラメータから参照 */
+                  valueFrom: "arn:aws:ssm:ap-northeast-1:218317313594:parameter/newrelic/passkey/license"
+                }
+              ]
+            }
           ]),
         }
       }
