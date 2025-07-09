@@ -121,9 +121,7 @@ ecrResources.repository.repositoryUrl.apply((url) => {
             },
             {
               name: `${infraConfigResources.idPrefix}-new-relic-container-${$app.stage}`,
-              image: "public.ecr.aws/newrelic/nri-ecs:1.11.10",
-              cpu: 256,                     // ≒ 0.25 vCPU
-              memoryReservation: 512,       // 512 MiB で十分
+              image: "newrelic/nri-ecs:1.12.18",
               logConfiguration: {
                 logDriver: "awslogs",
                 options: {
