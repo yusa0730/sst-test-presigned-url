@@ -131,8 +131,14 @@ ecrResources.repository.repositoryUrl.apply((url) => {
                 }
               },
               environment: [
-                { name: "FARGATE", value: "true" },
-                { name: "NRIA_IS_FORWARD_ONLY", value: "true" },
+                {
+                  name: "FARGATE",
+                  value: "true"
+                },
+                {
+                  name: "NRIA_IS_FORWARD_ONLY",
+                  value: "true"
+                },
                 {
                   // アプリ側や他のコンテナのメタデータをそのまま受け渡す指定
                   name: "NRIA_PASSTHROUGH_ENVIRONMENT",
@@ -142,7 +148,11 @@ ecrResources.repository.repositoryUrl.apply((url) => {
                   // 独自属性（任意）：デプロイ手段などを付けたい時に利用
                   name: "NRIA_CUSTOM_ATTRIBUTES",
                   value: "{\"nrDeployMethod\":\"sst\"}"
-                }
+                },
+                {
+                  name: "NRIA_OVERRIDE_HOST_ROOT",
+                  value: ""
+                },
               ],
               secrets: [
                 {
