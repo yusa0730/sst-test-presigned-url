@@ -13,11 +13,13 @@
 
 1. ダウンロード用の署名付き URL を生成
 
+```
 aws cloudfront sign \ 
   --url https://<YOUR-DOMAIN>/upload/Cat03.jpg \     # オブジェクトの URL
   --key-pair-id <KEY_PAIR_ID> \                      # CloudFront キーペア ID
   --private-key file:///path/to/private_key.pem \    # 対応する秘密鍵 (PEM)
   --date-less-than "$(date -u -v+7d +%Y-%m-%dT%H:%M:%SZ)"  # 7 日後に失効
+```
 
 | オプション          | 説明                                         |
 |--------------------|----------------------------------------------|
