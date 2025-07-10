@@ -1,0 +1,95 @@
+name: build-and-unlock-prod
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      PNPM_VERSION: 9.10.0
+      STAGE: production
+      AWS_REGION: ap-northeast-1
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      # 2. Node.js をセットアップ（LTS or 固定バージョンを指定）
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22           # 必要に応じて pin する
+          cache: "pnpm"               # ※自動で ~/.pnpm-store をキャッシュ
+
+      # 3. pnpm をインストール（CodeBuild install フェーズ相当）
+      - name: Setup pnpm ${{ env.PNPM_VERSION }}
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      # 2. ⚡️OIDC で AWS 認証
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Show pnpm & PATH
+        run: |
+          echo "PNPM_HOME=$PNPM_HOME"
+          echo "PATH=$PATH"
+          pnpm -v
+
+      # 4. 依存インストール ― buildspec.yml の build フェーズ頭２行
+      - name: Install dependencies (frozen-lockfile)
+        run: |
+          pnpm install --ignore-scripts --frozen-lockfile
+          pnpm install
+
+      # 5. ENCODED_PRIVATE_KEY / ENCODED_PUBLIC_KEY が無ければ生成
+      - name: Ensure RSA key secrets exist
+        id: ensure_keys
+        shell: bash
+        run: |
+          echo "Checking secret existence…"
+          SECRETS=$(pnpm run secret:list --stage $STAGE)
+          has_private_key=false
+          has_public_key=false
+          echo "$SECRETS" | grep -q "ENCODED_PRIVATE_KEY=" && has_private_key=true
+          echo "$SECRETS" | grep -q "ENCODED_PUBLIC_KEY=" && has_public_key=true
+
+          if [ "$has_private_key" = false ] || [ "$has_public_key" = false ]; then
+            echo "::notice::Missing secrets – generating temporary RSA key pair"
+            openssl genrsa -out private_key.pem 2048
+            openssl rsa -pubout -in private_key.pem -out public_key.pem
+
+            # sst secret set の代わりに、ワークフロー内で環境変数としてエクスポート
+            # ※永続的な GitHub Actions Secret に書き込む API は通常権限では不可
+            export ENCODED_PRIVATE_KEY=$(base64 -w0 < private_key.pem)
+            export ENCODED_PUBLIC_KEY=$(base64 -w0 < public_key.pem)
+            echo "ENCODED_PRIVATE_KEY=$ENCODED_PRIVATE_KEY" >>"$GITHUB_ENV"
+            echo "ENCODED_PUBLIC_KEY=$ENCODED_PUBLIC_KEY" >>"$GITHUB_ENV"
+          else
+            echo "::notice::Both secrets already exist"
+          fi
+
+      # 6. unlock 相当
+      - name: Unlock SST stage
+        run: pnpm run unlock --stage=$STAGE --print-logs
+
+      # 7. 後始末
+      - name: Clean up temporary key files
+        if: always()               # unlock が失敗しても確実に削除
+        run: rm -f private_key.pem public_key.pem || true
+
+      # === 必要に応じて ↓をアンコメント ===
+      # - name: Refresh SST stage
+      #   run: pnpm run refresh --stage=$STAGE --print-logs
+      #
+      # - name: Remove (teardown)
+      #   run: pnpm run remove --stage=$STAGE
+      #
+      # - name: Deploy
+      #   run: pnpm run deploy --stage=$STAGE --print-logs
