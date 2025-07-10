@@ -8,7 +8,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      PNPM_VERSION: 9.10.0
+      PNPM_VERSION: 10.6.5
       STAGE: production
       AWS_REGION: ap-northeast-1
 
@@ -16,20 +16,19 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      # 2. Node.js をセットアップ（LTS or 固定バージョンを指定）
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22           # 必要に応じて pin する
-          cache: "pnpm"               # ※自動で ~/.pnpm-store をキャッシュ
-
-      # 3. pnpm をインストール（CodeBuild install フェーズ相当）
       - name: Setup pnpm ${{ env.PNPM_VERSION }}
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
 
-      # 2. ⚡️OIDC で AWS 認証
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
+          registry-url: "https://npm.pkg.github.com"
+
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -46,7 +45,6 @@ jobs:
       - name: Install dependencies (frozen-lockfile)
         run: |
           pnpm install --ignore-scripts --frozen-lockfile
-          pnpm install
 
       # 5. ENCODED_PRIVATE_KEY / ENCODED_PUBLIC_KEY が無ければ生成
       - name: Ensure RSA key secrets exist
