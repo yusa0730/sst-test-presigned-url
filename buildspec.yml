@@ -35,9 +35,9 @@ phases:
         fi
       - pnpm run unlock --stage=production --print-logs
       - rm -f private_key.pem public_key.pem
-      - pnpm run refresh --stage=production --print-logs
-      # - pnpm run remove --stage=production
-      - pnpm run deploy --stage=production --print-logs
+      # - pnpm run refresh --stage=production --print-logs
+      - pnpm run remove --stage=production
+      # - pnpm run deploy --stage=production --print-logs
 cache:
   paths:
     - ~/.pnpm-store/**/*

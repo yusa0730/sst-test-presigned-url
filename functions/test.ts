@@ -6,12 +6,3 @@ export const handler = (event, context, callback) => {
     body: process.env.PRIVATE_KEY
   };
 };
-
-
-
-
-
-
-
-
-
