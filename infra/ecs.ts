@@ -40,8 +40,8 @@ ecrResources.repository.repositoryUrl.apply((url) => {
       storage: "21 GB",
       architecture: "x86_64",
       scaling: {
-        min: 2,
-        max: 2,
+        min: 1,
+        max: 1,
         cpuUtilization: 70,
         memoryUtilization: 70,
       },
@@ -111,12 +111,10 @@ ecrResources.repository.repositoryUrl.apply((url) => {
                   name: "NEW_RELIC_LOG",
                   value: "stdout"
                 },
-              ],
-              secrets: [
                 {
                   name: "NEW_RELIC_LICENSE_KEY",
-                  valueFrom: "arn:aws:ssm:ap-northeast-1:218317313594:parameter/newrelic/passkey/license"
-                }
+                  value: infraConfigResources.newRelicLicenseKey
+                },
               ],
             },
             {
@@ -153,14 +151,11 @@ ecrResources.repository.repositoryUrl.apply((url) => {
                   name: "NRIA_OVERRIDE_HOST_ROOT",
                   value: ""
                 },
-              ],
-              secrets: [
                 {
                   name: "NRIA_LICENSE_KEY",
-                  /* ライセンスキーを同じ SSM パラメータから参照 */
-                  valueFrom: "arn:aws:ssm:ap-northeast-1:218317313594:parameter/newrelic/passkey/license"
-                }
-              ]
+                  value: infraConfigResources.newRelicLicenseKey
+                },
+              ],
             }
           ]),
         }

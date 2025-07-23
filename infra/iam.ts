@@ -123,8 +123,57 @@ const edgeFunctionRole = new aws.iam.Role(
   },
 );
 
+const testLambdaFunctionRole = new aws.iam.Role(
+  `${infraConfigResources.idPrefix}-test-lambda-iar-${$app.stage}`,
+  {
+    name: `${infraConfigResources.idPrefix}-test-lambda-iar-${$app.stage}`,
+    assumeRolePolicy: JSON.stringify({
+      Version: "2012-10-17",
+      Statement: [
+        {
+          Effect: "Allow",
+          Principal: {
+            Service: "lambda.amazonaws.com",
+          },
+          Action: "sts:AssumeRole",
+        }
+      ],
+    }),
+    managedPolicyArns: [
+      "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+    ],
+    inlinePolicies: [
+      {
+        name: `${infraConfigResources.idPrefix}-test-lambda-iap-${$app.stage}`,
+        policy: $jsonStringify({
+          Version: "2012-10-17",
+          Statement: [
+            {
+              Effect: "Allow",
+              Action: [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+                "logs:DescribeLogGroups",
+                "logs:DescribeLogStreams",
+                "ssm:GetParameters",
+                "ssm:GetParameter",
+              ],
+              Resource: ["*"],
+            }
+          ],
+        }),
+      },
+    ],
+    tags: {
+      Name: `${infraConfigResources.idPrefix}-test-lambda-iar-${$app.stage}`,
+    },
+  }
+);
+
 export const iamResources = {
   vpcFlowLogRole,
   taskExecutionRole,
-  edgeFunctionRole
+  edgeFunctionRole,
+  testLambdaFunctionRole
 };
