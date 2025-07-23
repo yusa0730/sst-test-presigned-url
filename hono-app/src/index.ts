@@ -1,7 +1,7 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
-// import * as newrelic from 'newrelic';
-require('newrelic');
+// require('newrelic');
+import "newrelic";
 
 type Env = {
   Bindings: {
