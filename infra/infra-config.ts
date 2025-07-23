@@ -16,8 +16,8 @@ const awsUsEast1Provider = new aws.Provider(
 );
 
 const awsAccountId = await aws.ssm.getParameter({
-    name: "ACCOUNT_ID", // 取得したいパラメータ名
-    withDecryption: true, // 暗号化されている場合は復号化
+  name: "ACCOUNT_ID", // 取得したいパラメータ名
+  withDecryption: true, // 暗号化されている場合は復号化
 }).then(param => param.value);
 
 console.log("====awsAccountId====", awsAccountId);
@@ -36,6 +36,16 @@ $resolve(publicKey.value).apply((value) => {
   console.log("======publicKey=======");
 });
 
+const newRelicAccountId = await aws.ssm.getParameter({
+  name: "/newrelic/accountId", // 取得したいパラメータ名
+  withDecryption: true, // 暗号化されている場合は復号化
+}).then(param => param.value);
+
+const newRelicLicenseKey = await aws.ssm.getParameter({
+  name: "/newrelic/passkey/license", // 取得したいパラメータ名
+  withDecryption: true, // 暗号化されている場合は復号化
+}).then(param => param.value);
+
 export const infraConfigResources = {
   idPrefix,
   mainRegion,
@@ -44,5 +54,7 @@ export const infraConfigResources = {
   awsUsEast1Provider,
   awsAccountId,
   privateKey,
-  publicKey
+  publicKey,
+  newRelicAccountId,
+  newRelicLicenseKey
 };
