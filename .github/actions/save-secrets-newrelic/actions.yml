@@ -1,0 +1,46 @@
+name: Save Secrets NewRelic
+description: "This is a composite GitHub Action that saves secrets for NewRelic."
+
+inputs:
+  stage:
+    description: "dev, qa, stg, production"
+    required: true
+  # aws-account-id:
+  #   description: "The AWS account ID"
+  #   required: true
+  new-relic-account-id:
+    description: "The New Relic account ID"
+    required: true
+  new-relic-license-key:
+    description: "The New Relic license key"
+    required: true
+  # new-relic-trusted-account-key:
+  #   description: "The New Relic trusted account key"
+  #   required: true
+
+runs:
+  using: "composite"
+  steps:
+    # - name: newrelic sst secret
+    #   shell: bash
+    #   env:
+    #     AWS_ACCOUNT_ID: ${{ inputs.aws-account-id }}
+    #   run: pnpm run sst:secret:aws:accountid --stage ${{ inputs.stage }}
+
+    - name: newrelic sst secret
+      shell: bash
+      env:
+        NEW_RELIC_ACCOUNT_ID: ${{ inputs.new-relic-account-id }}
+      run: pnpm run sst:secret:newrelic:account:id --stage ${{ inputs.stage }}
+
+    - name: newrelic sst secret
+      shell: bash
+      env:
+        NEW_RELIC_LICENSE_KEY: ${{ inputs.new-relic-license-key }}
+      run: pnpm run sst:secret:newrelic:license:key --stage ${{ inputs.stage }}
+
+    # - name: newrelic sst secret
+    #   shell: bash
+    #   env:
+    #     NEW_RELIC_TRUSTED_ACCOUNT_KEY: ${{ inputs.new-relic-trusted-account-key }}
+    #   run: pnpm run sst:secret:newrelic:trusted:account:key --stage ${{ inputs.stage }}

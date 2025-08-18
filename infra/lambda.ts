@@ -27,8 +27,10 @@ const testLambda = new sst.aws.Function(
   `${infraConfigResources.idPrefix}-cdn-test-lambda-${$app.stage}`,
   {
     handler: "functions/test.handler",
+    // //コンソール画面にて手動で以下のhandlerに修正する
+    // handler: "/opt/nodejs/node_modules/newrelic-esm-lambda-wrapper/index.handler",
     name: `${infraConfigResources.idPrefix}-test-lambda-${$app.stage}`,
-    runtime: "nodejs20.x",
+    runtime: "nodejs22.x",
     memory: "128 MB",
     timeout: "5 seconds",
     versioning: false,
@@ -43,7 +45,8 @@ const testLambda = new sst.aws.Function(
       NEW_RELIC_APP_NAME: "sst-test-presigned-url-production",
       NEW_RELIC_LAMBDA_EXTENSION_ENABLED: "true",
       NEW_RELIC_AI_MONITORING_ENABLED: "true",
-      NEW_RELIC_USE_ESM: "true",
+      // NEW_RELIC_USE_ESM: "true",
+      NODE_OPTIONS: "--experimental-loader newrelic/esm-loader.mjs",
       PRIVATE_KEY: $resolve(infraConfigResources.privateKey.value).apply(value => value)
     },
   }

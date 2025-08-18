@@ -74,6 +74,13 @@ jobs:
           else
             echo "::notice::Both secrets already exist"
           fi
+      
+      - name: Save NewRelic Secrets
+        uses: ./.github/actions/save-secrets-newrelic
+        with:
+          stage: production
+          new-relic-account-id: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+          new-relic-license-key: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
 
       # 6. unlock 相当
       - name: Unlock SST stage

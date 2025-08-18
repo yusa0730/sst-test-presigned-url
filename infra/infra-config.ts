@@ -46,6 +46,20 @@ const newRelicLicenseKey = await aws.ssm.getParameter({
   withDecryption: true, // 暗号化されている場合は復号化
 }).then(param => param.value);
 
+const newRelicAccountIdSecret = new sst.Secret("NEW_RELIC_ACCOUNT_ID");
+$resolve(newRelicAccountIdSecret.value).apply((value) => {
+  console.log("======newRelicAccountIdSecret=======");
+  console.log(value)
+  console.log("======newRelicAccountIdSecret=======");
+});
+
+const newRelicLicenseKeySecret = new sst.Secret("NEW_RELIC_LICENSE_KEY");
+$resolve(newRelicLicenseKeySecret.value).apply((value) => {
+  console.log("======newRelicLicenseKeySecret=======");
+  console.log(value)
+  console.log("======newRelicLicenseKeySecret=======");
+});
+
 export const infraConfigResources = {
   idPrefix,
   mainRegion,
@@ -56,5 +70,7 @@ export const infraConfigResources = {
   privateKey,
   publicKey,
   newRelicAccountId,
-  newRelicLicenseKey
+  newRelicLicenseKey,
+  newRelicAccountIdSecret,
+  newRelicLicenseKeySecret
 };
