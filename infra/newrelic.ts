@@ -68,6 +68,8 @@ const cleaned = infraConfigResources.newRelicAccountIdSecret.value.apply((id) =>
   return massageWithId(raw, idNum);
 });
 
+console.log("===cleaned===", cleaned);
+
 // --- 4) OneDashboardJson の作成（provider は newrelic: true ＋ 環境変数で自動解決）
 const dashboard = new newrelic.OneDashboardJson(
   "satto-workspace-dashboard",

@@ -22,11 +22,11 @@
           "rawConfiguration": {
             "nrqlQueries": [
               {
-                "accountId": 0000000,
+                "accountId": 1111111,
                 "query": "SELECT average(apm.service.overview.web * 1000) FROM Metric WHERE (entity.guid = 'Njg5MzY4MHxBUE18QVBQTElDQVRJT058MTM1NzYwODIxMw') FACET `segmentName` LIMIT MAX SINCE 1800 seconds AGO TIMESERIES "
               },
               {
-                "accountId": 0000000,
+                "accountId": 1111111,
                 "query": "SELECT average(convert(apm.service.transaction.duration, unit, 'ms')) AS 'Response time' FROM Metric WHERE (entity.guid = 'Njg5MzY4MHxBUE18QVBQTElDQVRJT058MTM1NzYwODIxMw') AND (transactionType = 'Web') LIMIT MAX SINCE 1800 seconds AGO TIMESERIES "
               }
             ]
