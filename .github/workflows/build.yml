@@ -54,7 +54,7 @@ jobs:
         shell: bash
         run: |
           echo "Checking secret existence…"
-          SECRETS=$(pnpm run --filter presigned-url-test secret:list --stage $STAGE)
+          SECRETS=$(pnpm --filter presigned-url-test run secret:list --stage $STAGE)
           has_private_key=false
           has_public_key=false
           echo "$SECRETS" | grep -q "ENCODED_PRIVATE_KEY=" && has_private_key=true
@@ -65,7 +65,7 @@ jobs:
             openssl genrsa -out private_key.pem 2048
             openssl rsa -pubout -in private_key.pem -out public_key.pem
             pnpm --filter presigned-url-test run secret:private --stage production --print-logs
-            pnpm run secret:public --stage=production --print-logs
+            pnpm --filter presigned-url-test run secret:public --stage=production --print-logs
             # sst secret set の代わりに、ワークフロー内で環境変数としてエクスポート
             # ※永続的な GitHub Actions Secret に書き込む API は通常権限では不可
             export ENCODED_PRIVATE_KEY=$(base64 -w0 < private_key.pem)
@@ -85,7 +85,7 @@ jobs:
 
       # 6. unlock 相当
       - name: Unlock SST stage
-        run: pnpm run unlock --stage=$STAGE --print-logs
+        run: pnpm --filter presigned-url-test run unlock --stage=$STAGE --print-logs
 
       # 7. 後始末
       - name: Clean up temporary key files
@@ -94,10 +94,10 @@ jobs:
 
       # === 必要に応じて ↓をアンコメント ===
       - name: Refresh SST stage
-        run: pnpm run refresh --stage=$STAGE --print-logs
+        run: pnpm --filter presigned-url-test run refresh --stage=$STAGE --print-logs
 
       # - name: Remove (teardown)
-      #   run: pnpm run remove --stage=$STAGE
+      #   run: pnpm --filter presigned-url-test run remove --stage=$STAGE
       
       - name: Deploy
-        run: pnpm run deploy --stage=$STAGE --print-logs
+        run: pnpm --filter presigned-url-test run deploy --stage=$STAGE --print-logs
