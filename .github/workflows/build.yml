@@ -94,8 +94,8 @@ jobs:
         run: rm -f private_key.pem public_key.pem || true
 
       # === 必要に応じて ↓をアンコメント ===
-      - name: Refresh SST stage
-        run: pnpm run refresh --stage=$STAGE --print-logs
+      # - name: Refresh SST stage
+      #   run: pnpm run refresh --stage=$STAGE --print-logs
 
       # - name: Remove (teardown)
       #   run: pnpm run remove --stage=$STAGE
