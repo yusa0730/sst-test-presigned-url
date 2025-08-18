@@ -12,11 +12,7 @@ export default $config({
         // newrelic: true,
         // もしくはバージョン固定: { version: "5.49.0" }
         // or 明示設定: { accountId: 12345678, region: "US" } など
-        newrelic: {
-          version: "5.49.0",
-          accountId: new sst.Secret("NEW_RELIC_ACCOUNT_ID").value,
-          apiKey: new sst.Secret("NEW_RELIC_LICENSE_KEY").value
-        }
+        newrelic: true
       },
     };
   },

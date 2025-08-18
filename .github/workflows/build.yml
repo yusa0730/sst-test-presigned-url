@@ -77,9 +77,16 @@ jobs:
             echo "::notice::Both secrets already exist"
           fi
 
+      - name: Save NewRelic Secrets
+        uses: ./.github/actions/save-secrets-newrelic
+        with:
+          stage: production
+          new-relic-account-id: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+          new-relic-license-key: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
+
       # 6. unlock 相当
       - name: Unlock SST stage
-        run: pnpm run unlock --stage production --print-logs
+        run: pnpm run unlock --stage=$STAGE --print-logs
 
       # 7. 後始末
       - name: Clean up temporary key files
@@ -88,10 +95,10 @@ jobs:
 
       # === 必要に応じて ↓をアンコメント ===
       - name: Refresh SST stage
-        run: pnpm run refresh --stage production --print-logs
+        run: pnpm run refresh --stage=$STAGE --print-logs
 
       # - name: Remove (teardown)
       #   run: pnpm run remove --stage=$STAGE
       
       - name: Deploy
-        run: pnpm run deploy --stage production --print-logs
+        run: pnpm run deploy --stage=$STAGE --print-logs
