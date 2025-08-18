@@ -30,11 +30,7 @@ const nr = new newrelic.Provider("nr", {
 });
 
 // リポジトリルート基準で JSON を読む（ここは同期OK）
-const repoRoot = path.resolve(__dirname, "../../../../");
-const dashboardPath = path.join(
-  repoRoot,
-  "infra/newrelic/dashboard.json"
-);
+const dashboardPath = path.resolve(__dirname, "newrelic", "dashboard.json");
 if (!fs.existsSync(dashboardPath)) {
   throw new Error(`dashboard.json not found at: ${dashboardPath}`);
 }
