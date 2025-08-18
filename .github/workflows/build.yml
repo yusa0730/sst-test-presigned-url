@@ -54,7 +54,7 @@ jobs:
         shell: bash
         run: |
           echo "Checking secret existence…"
-          SECRETS=$(pnpm run secret:list --stage $STAGE)
+          SECRETS=$(pnpm run --filter presigned-url-test secret:list --stage $STAGE)
           has_private_key=false
           has_public_key=false
           echo "$SECRETS" | grep -q "ENCODED_PRIVATE_KEY=" && has_private_key=true
@@ -64,7 +64,7 @@ jobs:
             echo "::notice::Missing secrets – generating temporary RSA key pair"
             openssl genrsa -out private_key.pem 2048
             openssl rsa -pubout -in private_key.pem -out public_key.pem
-            pnpm run secret:private --stage production --print-logs
+            pnpm --filter presigned-url-test run secret:private --stage production --print-logs
             pnpm run secret:public --stage=production --print-logs
             # sst secret set の代わりに、ワークフロー内で環境変数としてエクスポート
             # ※永続的な GitHub Actions Secret に書き込む API は通常権限では不可
