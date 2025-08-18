@@ -54,7 +54,7 @@ jobs:
         shell: bash
         run: |
           echo "Checking secret existence…"
-          SECRETS=$(pnpm run secret:list --stage $STAGE)
+          SECRETS=$(pnpm run secret:list --stage production)
           has_private_key=false
           has_public_key=false
           echo "$SECRETS" | grep -q "ENCODED_PRIVATE_KEY=" && has_private_key=true
@@ -67,6 +67,8 @@ jobs:
 
             # sst secret set の代わりに、ワークフロー内で環境変数としてエクスポート
             # ※永続的な GitHub Actions Secret に書き込む API は通常権限では不可
+            pnpm run secret:private --stage production --print-logs
+            pnpm run secret:public --stage production --print-logs
             export ENCODED_PRIVATE_KEY=$(base64 -w0 < private_key.pem)
             export ENCODED_PUBLIC_KEY=$(base64 -w0 < public_key.pem)
             echo "ENCODED_PRIVATE_KEY=$ENCODED_PRIVATE_KEY" >>"$GITHUB_ENV"
@@ -77,7 +79,7 @@ jobs:
 
       # 6. unlock 相当
       - name: Unlock SST stage
-        run: pnpm run unlock --stage=$STAGE --print-logs
+        run: pnpm run unlock --stage production --print-logs
 
       # 7. 後始末
       - name: Clean up temporary key files
@@ -86,10 +88,10 @@ jobs:
 
       # === 必要に応じて ↓をアンコメント ===
       - name: Refresh SST stage
-        run: pnpm run refresh --stage=$STAGE --print-logs
+        run: pnpm run refresh --stage production --print-logs
 
       # - name: Remove (teardown)
       #   run: pnpm run remove --stage=$STAGE
       
       - name: Deploy
-        run: pnpm run deploy --stage=$STAGE --print-logs
+        run: pnpm run deploy --stage production --print-logs
