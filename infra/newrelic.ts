@@ -17,56 +17,29 @@
 //   }
 // );
 
-// infra/newrelic/dashboard.ts
+// infra/newrelic.ts
 import * as fs from "fs";
 import * as path from "path";
 import { infraConfigResources } from "./infra-config";
 
-// Provider: accountId も Output<number> のまま渡せます
-// const nr = new newrelic.Provider("nr", {
-//   accountId: infraConfigResources.newRelicAccountIdSecret.value,
-//   apiKey: infraConfigResources.newRelicLicenseKeySecret.value,
-//   region: "US",
-// });
-
-const nr = new newrelic.Provider("nr", {
-  accountId: "6893680",
-  apiKey: "27e25cdfe4e2e2fd5d9c6e4113f8492aFFFFNRAL",
-  region: "US",
-});
-
-console.log("=====env======");
-console.log(process.env.NEW_RELIC_ACCOUNT_ID);
-console.log(process.env.NEW_RELIC_API_KEY);
-console.log("======env=====");
-
-// リポジトリルート基準で JSON を読む（ここは同期OK）
-// const dashboardPath = path.resolve(__dirname, "newrelic", "dashboard.json");
+// --- 1) ダッシュボード JSON の読み込み（CI/ローカル共通で動くやり方）
 const dashboardPath = path.resolve(process.cwd(), "infra", "newrelic", "dashboard.json");
 if (!fs.existsSync(dashboardPath)) {
   throw new Error(`dashboard.json not found at: ${dashboardPath}`);
 }
 const raw = JSON.parse(fs.readFileSync(dashboardPath, "utf-8"));
 
-/** JSON 正規化ロジック（同期関数）。
- *  引数 ACCOUNT_ID を使って accountId(s) を上書きし、guid/id を除去します。
- */
+// --- 2) JSON 正規化: accountId/accountIds の上書き + guid だけ除去（idは残す！）
 function massageWithId(obj: any, ACCOUNT_ID: number): any {
-	console.log("====ACCOUNT_ID===", ACCOUNT_ID);
   function walk(o: any): any {
     if (Array.isArray(o)) return o.map(walk);
     if (o && typeof o === "object") {
       const out: any = {};
       for (const [k, v] of Object.entries(o)) {
-        if (k === "guid" || k === "id") continue; // 既存の識別子は削除
-        if (k === "accountId") {
-          out[k] = ACCOUNT_ID; // number
-          continue;
-        }
-        if (k === "accountIds") {
-          out[k] = [ACCOUNT_ID]; // widget 側は配列
-          continue;
-        }
+        // ❌ 以前: (k === "guid" || k === "id") → visualization.id まで消えていた
+        if (k === "guid") continue;                 // ← guid のみ除外
+        if (k === "accountId") { out[k] = ACCOUNT_ID; continue; }
+        if (k === "accountIds") { out[k] = [ACCOUNT_ID]; continue; }
         out[k] = walk(v);
       }
       return out;
@@ -76,7 +49,7 @@ function massageWithId(obj: any, ACCOUNT_ID: number): any {
 
   const first = walk(obj);
 
-  // variables[].nrqlQuery.accountIds は "単数 number" を要求するため矯正
+  // variables[].nrqlQuery.accountIds / accountId の補正（あれば）
   if (Array.isArray(first.variables)) {
     for (const v of first.variables) {
       if (v?.nrqlQuery && typeof v.nrqlQuery === "object") {
@@ -88,34 +61,17 @@ function massageWithId(obj: any, ACCOUNT_ID: number): any {
   return first;
 }
 
-// cleaned は Output<any> として作る（accountId の解決後に生成）
+// --- 3) accountId の解決（SST Secret から Output<number> を使って安全に解決）
 const cleaned = infraConfigResources.newRelicAccountIdSecret.value.apply((id) => {
   const idNum = parseInt(String(id).trim().replace(/^["']|["']$/g, ""), 10);
-  if (Number.isNaN(idNum)) {
-    throw new Error(`NEW_RELIC_ACCOUNT_ID must be a number. Got: ${id}`);
-  }
+  if (Number.isNaN(idNum)) throw new Error(`NEW_RELIC_ACCOUNT_ID must be a number. Got: ${id}`);
   return massageWithId(raw, idNum);
 });
 
-// OneDashboardJson は Input<string> を受け取れるので、JSON 文字列化も apply 内で
-// const dashboard = new newrelic.OneDashboardJson(
-//   "satto-workspace-dashboard",
-//   {
-//     json: cleaned.apply((o) => JSON.stringify(o)),
-//   },
-//   { provider: nr }
-// );
-
-console.log("====nr====", nr);
-
+// --- 4) OneDashboardJson の作成（provider は newrelic: true ＋ 環境変数で自動解決）
 const dashboard = new newrelic.OneDashboardJson(
   "satto-workspace-dashboard",
-  {
-    json: cleaned.apply((o) => JSON.stringify(o)),
-  },
-  {
-    provider: nr
-  }
+  { json: cleaned.apply((o) => JSON.stringify(o)) }
 );
 
 export const dashboardUrl = dashboard.permalink;
