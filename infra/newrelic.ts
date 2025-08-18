@@ -100,10 +100,15 @@ const cleaned = infraConfigResources.newRelicAccountIdSecret.value.apply((id) =>
 //   { provider: nr }
 // );
 
+console.log("====nr====", nr);
+
 const dashboard = new newrelic.OneDashboardJson(
   "satto-workspace-dashboard",
   {
     json: cleaned.apply((o) => JSON.stringify(o)),
+  },
+  {
+    provider: nr
   }
 );
 
