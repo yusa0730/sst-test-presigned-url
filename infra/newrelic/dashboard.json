@@ -1,14 +1,13 @@
 {
-  "name": "sst-test-presined-url-dashboard",
+  "name": "sst-test-presined-url-dashboard-test",
   "description": null,
   "permissions": "PUBLIC_READ_WRITE",
   "pages": [
     {
-      "name": "sst-test-presined-url-dashboard",
+      "name": "sst-test-presined-url-dashboard-test",
       "description": null,
       "widgets": [
         {
-          "id": "453339578",
           "title": "Web transactions time",
           "layout": {
             "column": 1,
@@ -34,7 +33,6 @@
           }
         },
         {
-          "id": "453339967",
           "title": null,
           "layout": {
             "column": 5,
@@ -63,9 +61,6 @@
             },
             "nrqlQueries": [
               {
-                "accountIds": [
-                  6893680
-                ],
                 "query": "FROM Transaction\nSELECT count(*) AS 'Requests', percentile(duration, 95) AS 'p95 latency (s)'\nFACET request.uri\nTIMESERIES 1 minute\nSINCE 60 minutes ago UNTIL now\n"
               }
             ],
@@ -92,9 +87,6 @@
       "items": null,
       "defaultValues": [],
       "nrqlQuery": {
-        "accountIds": [
-          6893680
-        ],
         "query": "FROM Transaction\nSELECT average(duration) AS 'Latency (s)'\nWHERE entityGuid IN ('Njg5MzY4MHxJTkZSQXxOQXw4OTA1NTYyMTkzMzAyNjY3NDA0')\n  AND transactionType = 'Web'\nTIMESERIES 1 minute\nSINCE 60 minutes ago UNTIL now"
       },
       "options": {
@@ -111,9 +103,6 @@
       "items": null,
       "defaultValues": [],
       "nrqlQuery": {
-        "accountIds": [
-          6893680
-        ],
         "query": "FROM Transaction SELECT count(*), percentile(duration, 95) FACET request.uri "
       },
       "options": {
