@@ -23,9 +23,15 @@ import * as path from "path";
 import { infraConfigResources } from "./infra-config";
 
 // Provider: accountId も Output<number> のまま渡せます
+// const nr = new newrelic.Provider("nr", {
+//   accountId: infraConfigResources.newRelicAccountIdSecret.value,
+//   apiKey: infraConfigResources.newRelicLicenseKeySecret.value,
+//   region: "US",
+// });
+
 const nr = new newrelic.Provider("nr", {
-  accountId: infraConfigResources.newRelicAccountIdSecret.value,
-  apiKey: infraConfigResources.newRelicLicenseKeySecret.value,
+  accountId: "6893680",
+  apiKey: "27e25cdfe4e2e2fd5d9c6e4113f8492aFFFFNRAL",
   region: "US",
 });
 
