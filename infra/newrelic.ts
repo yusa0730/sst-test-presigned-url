@@ -33,7 +33,7 @@ const nr = new newrelic.Provider("nr", {
 const repoRoot = path.resolve(__dirname, "../../../../");
 const dashboardPath = path.join(
   repoRoot,
-  "infra/newrelic/dashboard/dashboard.json"
+  "infra/newrelic/dashboard.json"
 );
 if (!fs.existsSync(dashboardPath)) {
   throw new Error(`dashboard.json not found at: ${dashboardPath}`);
