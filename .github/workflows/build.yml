@@ -11,6 +11,9 @@ jobs:
       PNPM_VERSION: 10.6.5
       STAGE: production
       AWS_REGION: ap-northeast-1
+      NEW_RELIC_ACCOUNT_ID: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+      NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
+      NEW_RELIC_REGION: US
     permissions:
       id-token: write
       contents: read
