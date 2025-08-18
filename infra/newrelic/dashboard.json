@@ -22,11 +22,11 @@
           "rawConfiguration": {
             "nrqlQueries": [
               {
-                "accountId": 6893680,
+                "accountId": 0000000,
                 "query": "SELECT average(apm.service.overview.web * 1000) FROM Metric WHERE (entity.guid = 'Njg5MzY4MHxBUE18QVBQTElDQVRJT058MTM1NzYwODIxMw') FACET `segmentName` LIMIT MAX SINCE 1800 seconds AGO TIMESERIES "
               },
               {
-                "accountId": 6893680,
+                "accountId": 0000000,
                 "query": "SELECT average(convert(apm.service.transaction.duration, unit, 'ms')) AS 'Response time' FROM Metric WHERE (entity.guid = 'Njg5MzY4MHxBUE18QVBQTElDQVRJT058MTM1NzYwODIxMw') AND (transactionType = 'Web') LIMIT MAX SINCE 1800 seconds AGO TIMESERIES "
               }
             ]
@@ -61,6 +61,7 @@
             },
             "nrqlQueries": [
               {
+                "accountIds": [],
                 "query": "FROM Transaction\nSELECT count(*) AS 'Requests', percentile(duration, 95) AS 'p95 latency (s)'\nFACET request.uri\nTIMESERIES 1 minute\nSINCE 60 minutes ago UNTIL now\n"
               }
             ],
@@ -87,6 +88,7 @@
       "items": null,
       "defaultValues": [],
       "nrqlQuery": {
+        "accountIds": [],
         "query": "FROM Transaction\nSELECT average(duration) AS 'Latency (s)'\nWHERE entityGuid IN ('Njg5MzY4MHxJTkZSQXxOQXw4OTA1NTYyMTkzMzAyNjY3NDA0')\n  AND transactionType = 'Web'\nTIMESERIES 1 minute\nSINCE 60 minutes ago UNTIL now"
       },
       "options": {
@@ -103,6 +105,7 @@
       "items": null,
       "defaultValues": [],
       "nrqlQuery": {
+        "accountIds": [],
         "query": "FROM Transaction SELECT count(*), percentile(duration, 95) FACET request.uri "
       },
       "options": {
