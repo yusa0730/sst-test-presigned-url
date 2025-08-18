@@ -23,11 +23,16 @@ import * as path from "path";
 import { infraConfigResources } from "./infra-config";
 
 // Provider: accountId も Output<number> のまま渡せます
-// const nr = new newrelic.Provider("nr", {
-//   accountId: infraConfigResources.newRelicAccountIdSecret.value,
-//   apiKey: infraConfigResources.newRelicLicenseKeySecret.value,
-//   region: "US",
-// });
+const nr = new newrelic.Provider("nr", {
+  accountId: infraConfigResources.newRelicAccountIdSecret.value,
+  apiKey: infraConfigResources.newRelicLicenseKeySecret.value,
+  region: "US",
+});
+
+console.log("=====env======");
+console.log(process.env.NEW_RELIC_ACCOUNT_ID);
+console.log(process.env.NEW_RELIC_API_KEY);
+console.log("======env=====");
 
 // リポジトリルート基準で JSON を読む（ここは同期OK）
 // const dashboardPath = path.resolve(__dirname, "newrelic", "dashboard.json");
