@@ -20,9 +20,9 @@
 // infra/newrelic.ts
 import * as fs from "fs";
 import * as path from "path";
-import { infraConfigResources } from "./infra-config";
+import { infraConfigResources } from "../infra-config";
 
-console.log("======newrelic.ts start======");
+console.log("======dashboard.ts start======");
 
 // --- 1) ダッシュボード JSON の読み込み（CI/ローカル共通で動くやり方）
 const dashboardPath = path.resolve(process.cwd(), "infra", "newrelic", "dashboard.json");
