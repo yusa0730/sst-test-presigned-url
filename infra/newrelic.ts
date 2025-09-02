@@ -22,6 +22,8 @@ import * as fs from "fs";
 import * as path from "path";
 import { infraConfigResources } from "./infra-config";
 
+console.log("======newrelic.ts start======");
+
 // --- 1) ダッシュボード JSON の読み込み（CI/ローカル共通で動くやり方）
 const dashboardPath = path.resolve(process.cwd(), "infra", "newrelic", "dashboard.json");
 if (!fs.existsSync(dashboardPath)) {
@@ -62,7 +64,7 @@ function massageWithId(obj: any, ACCOUNT_ID: number): any {
 }
 
 // --- 3) accountId の解決（SST Secret から Output<number> を使って安全に解決）
-const cleaned = infraConfigResources.newRelicAccountIdSecret.value.apply((id) => {
+const cleaned = infraConfigResources.newRelicAccountIdSecret.apply((id) => {
   const idNum = parseInt(String(id).trim().replace(/^["']|["']$/g, ""), 10);
   if (Number.isNaN(idNum)) throw new Error(`NEW_RELIC_ACCOUNT_ID must be a number. Got: ${id}`);
   return massageWithId(raw, idNum);

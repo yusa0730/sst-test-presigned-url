@@ -32,5 +32,6 @@ export default $config({
     await import('./infra/ecs');
     await import('./infra/cloudfront');
     await import('./infra/newrelic');
+    await import('./infra/newrelic-alert');
   }
 });

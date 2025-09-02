@@ -46,18 +46,25 @@ const newRelicLicenseKey = await aws.ssm.getParameter({
   withDecryption: true, // 暗号化されている場合は復号化
 }).then(param => param.value);
 
-const newRelicAccountIdSecret = new sst.Secret("NEW_RELIC_ACCOUNT_ID");
-$resolve(newRelicAccountIdSecret.value).apply((value) => {
+const newRelicAccountIdSecret = new sst.Secret("NEW_RELIC_ACCOUNT_ID").value;
+$resolve(newRelicAccountIdSecret).apply((value) => {
   console.log("======newRelicAccountIdSecret=======");
   console.log(value)
   console.log("======newRelicAccountIdSecret=======");
 });
 
-const newRelicLicenseKeySecret = new sst.Secret("NEW_RELIC_LICENSE_KEY");
-$resolve(newRelicLicenseKeySecret.value).apply((value) => {
-  console.log("======newRelicLicenseKeySecret=======");
+const newRelicSlackDestinationId = new sst.Secret("NEW_RELIC_SLACK_DESTINATION_ID").value;
+$resolve(newRelicSlackDestinationId).apply((value) => {
+  console.log("======newRelicSlackDestinationId=======");
   console.log(value)
-  console.log("======newRelicLicenseKeySecret=======");
+  console.log("======newRelicSlackDestinationId=======");
+});
+
+const newRelicSlackChannelId = new sst.Secret("NEW_RELIC_SLACK_CHANNEL_ID").value;
+$resolve(newRelicSlackChannelId).apply((value) => {
+  console.log("======newRelicSlackChannelId=======");
+  console.log(value)
+  console.log("======newRelicSlackChannelId=======");
 });
 
 export const infraConfigResources = {
@@ -72,5 +79,6 @@ export const infraConfigResources = {
   newRelicAccountId,
   newRelicLicenseKey,
   newRelicAccountIdSecret,
-  newRelicLicenseKeySecret
+  newRelicSlackDestinationId,
+  newRelicSlackChannelId
 };

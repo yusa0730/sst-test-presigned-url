@@ -14,6 +14,12 @@ inputs:
   new-relic-license-key:
     description: "The New Relic license key"
     required: true
+  new-relic-slack-destination-id:
+    description: "The Slack Destination Id of New Relic Alert"
+    required: true
+  new-relic-slack-channel-id:
+    description: "The Slack Channel Id of New Relic Alert"
+    required: true
   # new-relic-trusted-account-key:
   #   description: "The New Relic trusted account key"
   #   required: true
@@ -44,3 +50,15 @@ runs:
     #   env:
     #     NEW_RELIC_TRUSTED_ACCOUNT_KEY: ${{ inputs.new-relic-trusted-account-key }}
     #   run: pnpm run sst:secret:newrelic:trusted:account:key --stage ${{ inputs.stage }}
+
+    - name: newrelic-slack-destination-id sst secret
+      shell: bash
+      env:
+        NEW_RELIC_SLACK_DESTINATION_ID: ${{ inputs.new-relic-slack-destination-id }}
+      run: pnpm run sst:secret:newrelic:slack:destination:id --stage ${{ inputs.stage }}
+
+    - name: newrelic-slack-channel-id sst secret
+      shell: bash
+      env:
+        NEW_RELIC_SLACK_CHANNEL_ID: ${{ inputs.new-relic-slack-channel-id }}
+      run: pnpm run sst:secret:newrelic:slack:channel:id --stage ${{ inputs.stage }}
