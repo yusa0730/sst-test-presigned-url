@@ -51,7 +51,7 @@ const reqCountByUri = new newrelic.NrqlAlertCondition(
     enabled: true,
     nrql: {
       query: "FROM Transaction SELECT count(*) FACET request.uri",
-      evaluationOffset: 1,
+      // evaluationOffset: 1,
     },
     violationTimeLimitSeconds: 3600,
     critical: {
