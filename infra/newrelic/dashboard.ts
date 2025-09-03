@@ -74,7 +74,7 @@ console.log("===cleaned===", cleaned);
 
 // --- 4) OneDashboardJson の作成（provider は newrelic: true ＋ 環境変数で自動解決）
 const dashboard = new newrelic.OneDashboardJson(
-  "satto-workspace-dashboard",
+  `${infraConfigResources.idPrefix}-new-relic-dashboard-${$app.stage}`,
   { json: cleaned.apply((o) => JSON.stringify(o)) }
 );
 
