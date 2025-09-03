@@ -8,6 +8,7 @@
     "remove": "sst remove",
     "refresh": "sst refresh",
     "unlock": "sst unlock",
+    "diff": "sst diff",
     "secret:encodekey": "sst secret set ENCODED_PUBLIC_KEY $ENCODED_PUBLIC_KEY",
     "secret:public": "sst secret set ENCODED_PUBLIC_KEY < ./public_key.pem",
     "secret:private": "sst secret set ENCODED_PRIVATE_KEY < ./private_key.pem",

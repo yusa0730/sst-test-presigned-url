@@ -3,6 +3,11 @@ import { infraConfigResources } from "../infra-config";
 
 console.log("======newrelic-config.ts start======");
 
+console.log(process.env.NEW_RELIC_SLACK_DESTINATION_ID);
+console.log(process.env.NEW_RELIC_SLACK_CHANNEL_ID);
+
+console.log("======newrelic-config.ts start======");
+
 const slackWebhookDest = new newrelic.NotificationDestination(
   `${infraConfigResources.idPrefix}-slack-webhook-destination-${$app.stage}`,
   {
