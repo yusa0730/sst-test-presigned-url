@@ -42,6 +42,28 @@ const testNrql = new newrelic.NrqlAlertCondition(
   { dependsOn: [testPolicy] }
 );
 
+const reqCountByUri = new newrelic.NrqlAlertCondition(
+  `${infraConfigResources.idPrefix}-nrql-reqcount-${$app.stage}`,
+  {
+    policyId: testPolicy.id,
+    name: `Test NRQL: TestAlert request.uri ${$app.stage}`,
+    type: "static",
+    enabled: true,
+    nrql: {
+      query: "FROM Transaction SELECT count(*) FACET request.uri",
+      evaluationOffset: 1,
+    },
+    violationTimeLimitSeconds: 3600,
+    critical: {
+      operator: "above",
+      threshold: 1,
+      thresholdDuration: 60,          // 60秒で評価
+      thresholdOccurrences: "ANY",    // (= any)
+    },
+  },
+  { dependsOn: [testPolicy] }
+);
+
 // 3) Workflow（このポリシーのIssueだけをSlackへ）
 const testWorkflow = new newrelic.Workflow(
   `${infraConfigResources.idPrefix}-workflow-nr-test-${$app.stage}`,
