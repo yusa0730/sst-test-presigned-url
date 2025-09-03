@@ -58,7 +58,7 @@ const reqCountByUri = new newrelic.NrqlAlertCondition(
       operator: "above",
       threshold: 1,
       thresholdDuration: 60,          // 60秒で評価
-      thresholdOccurrences: "ANY",    // (= any)
+      thresholdOccurrences: "AT_LEAST_ONCE",    // (= any)
     },
   },
   { dependsOn: [testPolicy] }
