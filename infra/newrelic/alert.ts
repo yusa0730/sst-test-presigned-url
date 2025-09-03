@@ -60,6 +60,11 @@ const reqCountByUri = new newrelic.NrqlAlertCondition(
       thresholdDuration: 60,          // 60秒で評価
       thresholdOccurrences: "AT_LEAST_ONCE",    // (= any)
     },
+    // ← ここを追加
+    fillOption: "none",            // "none" | "static"
+    aggregationWindow: 60,         // 秒
+    aggregationMethod: "event_flow", // "event_flow" | "cadence" など
+    aggregationDelay: "120",
   },
   { dependsOn: [testPolicy] }
 );
