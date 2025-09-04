@@ -5,6 +5,14 @@ console.log("======alert-policy.ts start======");
 
 const idPrefix = `${infraConfigResources.idPrefix}`;
 
+const testPolicy = new newrelic.AlertPolicy(
+  `${infraConfigResources.idPrefix}-nr-test-policy-${$app.stage}`,
+  {
+    name: `${infraConfigResources.idPrefix}-nr-test-policy-${$app.stage}`,
+    incidentPreference: "PER_POLICY",
+  }
+);
+
 const albErrorPolicy = new newrelic.AlertPolicy(
   `${idPrefix}-alert-alb-error-policy-${$app.stage}`,
   {
@@ -45,6 +53,7 @@ const slackAlertWorkflow = new newrelic.Workflow(
 );
 
 export const alertPolicyResources = {
+  testPolicy,
 	albErrorPolicy,
 	slackAlertWorkflow
 };

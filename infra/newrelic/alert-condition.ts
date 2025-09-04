@@ -5,6 +5,33 @@ console.log("======alert-condition.ts start======");
 
 const idPrefix = `${infraConfigResources.idPrefix}`;
 
+const reqCountByUri = new newrelic.NrqlAlertCondition(
+  `${idPrefix}-request-count-alert-condition-${$app.stage}`,
+  {
+    policyId: alertPolicyResources.testPolicy.id,
+    name: `Test NRQL: TestAlert request.uri ${$app.stage}`,
+    type: "static",
+    enabled: true,
+    nrql: {
+      query: "FROM Transaction SELECT count(*) FACET request.uri",
+      dataAccountId: $interpolate`${infraConfigResources.newRelicAccountIdSecret}`,
+    },
+    violationTimeLimitSeconds: 3600,
+    critical: {
+      operator: "above",
+      threshold: 1,
+      thresholdDuration: 60,          // 60秒で評価
+      thresholdOccurrences: "AT_LEAST_ONCE",    // (= any)
+    },
+    // ← ここを追加
+    fillOption: "none",            // "none" | "static"
+    aggregationWindow: 60,         // 秒
+    aggregationMethod: "event_flow", // "event_flow" | "cadence" など
+    aggregationDelay: "120",
+  },
+  { dependsOn: [alertPolicyResources.testPolicy] }
+);
+
 /**
  * 1) ALB 500エラー（ELB由来）
  * Terraform:
