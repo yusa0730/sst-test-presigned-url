@@ -35,6 +35,7 @@ const slackAlertWorkflow = new newrelic.Workflow(
           attribute: "labels.policyIds",
           operator: "EXACTLY_MATCHES",
           values: [
+            testPolicy.name,
 						albErrorPolicy.name
 					],
         },
@@ -49,7 +50,13 @@ const slackAlertWorkflow = new newrelic.Workflow(
       },
     ],
   },
-  { dependsOn: [newrelicConfigResources.slackChannel, albErrorPolicy] }
+  {
+    dependsOn: [
+      newrelicConfigResources.slackChannel,
+      testPolicy,
+      albErrorPolicy
+    ]
+  }
 );
 
 export const alertPolicyResources = {
