@@ -1,42 +1,33 @@
 {
-  "name": "sst-test-presined-url-dashboard-test",
+  "name": "sst-test-presighned-url-dashboard-${$app.stage}",
   "description": null,
   "permissions": "PUBLIC_READ_WRITE",
   "pages": [
     {
-      "name": "sst-test-presined-url-dashboard-test",
+      "name": "システム全体確認",
       "description": null,
       "widgets": [
         {
-          "title": "Web transactions time",
+          "title": null,
           "layout": {
             "column": 1,
             "row": 1,
-            "width": 4,
-            "height": 3
+            "width": 12,
+            "height": 1
           },
           "linkedEntityGuids": null,
           "visualization": {
-            "id": "viz.area"
+            "id": "viz.markdown"
           },
           "rawConfiguration": {
-            "nrqlQueries": [
-              {
-                "accountId": 1111111,
-                "query": "SELECT average(apm.service.overview.web * 1000) FROM Metric WHERE (entity.guid = 'Njg5MzY4MHxBUE18QVBQTElDQVRJT058MTM1NzYwODIxMw') FACET `segmentName` LIMIT MAX SINCE 1800 seconds AGO TIMESERIES "
-              },
-              {
-                "accountId": 1111111,
-                "query": "SELECT average(convert(apm.service.transaction.duration, unit, 'ms')) AS 'Response time' FROM Metric WHERE (entity.guid = 'Njg5MzY4MHxBUE18QVBQTElDQVRJT058MTM1NzYwODIxMw') AND (transactionType = 'Web') LIMIT MAX SINCE 1800 seconds AGO TIMESERIES "
-              }
-            ]
+            "text": "## ECS"
           }
         },
         {
-          "title": null,
+          "title": "各ECSTaskのCPU使用率",
           "layout": {
-            "column": 5,
-            "row": 1,
+            "column": 1,
+            "row": 2,
             "width": 4,
             "height": 3
           },
@@ -62,7 +53,1422 @@
             "nrqlQueries": [
               {
                 "accountIds": [],
-                "query": "FROM Transaction\nSELECT count(*) AS 'Requests', percentile(duration, 95) AS 'p95 latency (s)'\nFACET request.uri\nTIMESERIES 1 minute\nSINCE 60 minutes ago UNTIL now\n"
+                "query": "SELECT  max(cpuPercent) AS 'CPU' FROM ContainerSample WHERE ecsContainerName in ({{CONTAINER_NAME}}) facet name  limit max Timeseries SINCE 30 minutes ago"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": {
+              "isLabelVisible": true
+            },
+            "yAxisLeft": {
+              "zero": true
+            },
+            "yAxisRight": {
+              "zero": true
+            }
+          }
+        },
+        {
+          "title": "現在起動中の各ECSタスク数",
+          "layout": {
+            "column": 5,
+            "row": 2,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "FROM ContainerSample\nSELECT uniqueCount(ecsTaskArn) AS 'Running ECS tasks'\nWHERE ecsClusterName IN ('sst-test-presighned-url-ws-cluster-production', 'sst-test-presighned-url-bff-stream-cluster-production')\nFACET ecsClusterName\nTIMESERIES 1 minute\nSINCE 60 minutes ago UNTIL now"
+              }
+            ]
+          }
+        },
+        {
+          "title": "sst-test-presighned-url-stream-cluster-production task数と現在起動中のtask数",
+          "layout": {
+            "column": 9,
+            "row": 2,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "FROM Metric\nSELECT\n  sum(aws.ecs.containerinsights.DesiredTaskCount) AS 'Desired',\n  sum(aws.ecs.containerinsights.RunningTaskCount) AS 'Running'\nWHERE aws.ecs.containerinsights.ClusterName = 'sst-test-presighned-url-stream-cluster-production'\n  AND aws.ecs.containerinsights.ServiceName IS NOT NULL\nTIMESERIES 1 minutes EXTRAPOLATE\nSINCE 60 minutes ago UNTIL now"
+              }
+            ]
+          }
+        },
+        {
+          "title": "各ECS Taskのメモリ利用率の最大値",
+          "layout": {
+            "column": 1,
+            "row": 5,
+            "width": 12,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "FROM Metric\nSELECT\n  max(aws.ecs.containerinsights.ContainerMemoryUtilization) AS 'max %'\nWHERE `aws.ecs.containerinsights.ClusterName` IN (\n  'sst-test-presighned-url-stream-cluster-production',\n  'sst-test-presighned-url-ws-cluster-production'\n)\n  AND `aws.ecs.containerinsights.ServiceName` IS NOT NULL\nFACET `aws.ecs.containerinsights.ClusterName`, `aws.ecs.containerinsights.ServiceName`\nTIMESERIES 5 minutes\nSINCE 30 minutes ago UNTIL now"
+              }
+            ]
+          }
+        },
+        {
+          "title": "",
+          "layout": {
+            "column": 1,
+            "row": 8,
+            "width": 12,
+            "height": 1
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.markdown"
+          },
+          "rawConfiguration": {
+            "text": "## APM"
+          }
+        },
+        {
+          "title": "APM Web transactions time",
+          "layout": {
+            "column": 1,
+            "row": 9,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.area"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT average(apm.service.overview.web * 1000) FROM Metric WHERE appName IN ({{APM_NAME}}) FACET `segmentName` LIMIT MAX SINCE 1800 seconds AGO TIMESERIES "
+              },
+              {
+                "accountIds": [],
+                "query": "SELECT average(convert(apm.service.transaction.duration, unit, 'ms')) AS 'Response time' FROM Metric WHERE appName IN ({{APM_NAME}}) AND (transactionType = 'Web') LIMIT MAX SINCE 1800 seconds AGO TIMESERIES "
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "APM Error rate",
+          "layout": {
+            "column": 5,
+            "row": 9,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT sum(apm.service.error.count['count']) / count(apm.service.transaction.duration) AS 'Web errors' FROM Metric WHERE appName IN ({{APM_NAME}}) AND (transactionType = 'Web') LIMIT MAX SINCE 1800 seconds AGO TIMESERIES "
+              },
+              {
+                "accountIds": [],
+                "query": "SELECT sum(apm.service.error.count['count']) / count(apm.service.transaction.duration) AS 'All errors' FROM Metric WHERE (entity.guid = 'Njg3NDg0MnxBUE18QVBQTElDQVRJT058MTA4MTY3OTU1Mw') LIMIT MAX SINCE 1800 seconds AGO TIMESERIES "
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": {
+              "isLabelVisible": true
+            },
+            "yAxisLeft": {
+              "zero": true
+            },
+            "yAxisRight": {
+              "zero": true
+            }
+          }
+        },
+        {
+          "title": "APM Throughput",
+          "layout": {
+            "column": 9,
+            "row": 9,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT rate(count(apm.service.transaction.duration), 1 minute) as 'Web throughput' FROM Metric WHERE appName IN ({{APM_NAME}}) AND (transactionType = 'Web') LIMIT MAX SINCE 1800 seconds AGO TIMESERIES "
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": {
+              "isLabelVisible": true
+            },
+            "yAxisLeft": {
+              "zero": true
+            },
+            "yAxisRight": {
+              "zero": true
+            }
+          }
+        },
+        {
+          "title": "スロークエリ",
+          "layout": {
+            "column": 1,
+            "row": 12,
+            "width": 12,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.table"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "FROM Span\nSELECT percentile(duration, 95) * 1000 AS 'p95 (ms)', count(*) AS 'calls'\nWHERE category = 'datastore'\n  AND appName IN ({{APM_NAME}})\nFACET db.statement\nSINCE 24 hours ago\nLIMIT 20"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "APM Error",
+          "layout": {
+            "column": 1,
+            "row": 15,
+            "width": 6,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.bar"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT count(*) FROM TransactionError WHERE appName IN ({{APM_NAME}}) since 1 week ago limit 10 facet request.uri,error.message"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "APMの400系エラーと500系エラー数",
+          "layout": {
+            "column": 7,
+            "row": 15,
+            "width": 6,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "FROM Transaction\nSELECT\n  filter(count(*), WHERE `http.statusCode` LIKE '4__') AS '4xx',\n  filter(count(*), WHERE `http.statusCode` LIKE '5__') AS '5xx'\nWHERE appName = 'st-test-presighned-url-production'\n  AND transactionType = 'Web'\nTIMESERIES 5 minutes\nSINCE 24 hours ago"
+              }
+            ]
+          }
+        },
+        {
+          "title": "ECS Task内で動くアプリケーションのlatency",
+          "layout": {
+            "column": 1,
+            "row": 18,
+            "width": 6,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "FROM Transaction\nSELECT\n  percentile(duration, 95) AS 'p95 latency (s)',\n  count(*) AS 'Requests'\nWHERE appName IN ({{APM_NAME}})\n  AND transactionType = 'Web'\nFACET name\nTIMESERIES 1 minute\nSINCE 60 minutes ago"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": {
+              "isLabelVisible": true
+            },
+            "yAxisLeft": {
+              "zero": true
+            },
+            "yAxisRight": {
+              "zero": true
+            }
+          }
+        },
+        {
+          "title": "DBのlatency",
+          "layout": {
+            "column": 7,
+            "row": 18,
+            "width": 6,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "FROM Span\nSELECT percentile(duration, 95) AS 'DB p95 (s)'\nWHERE category = 'datastore'\n  AND appName IN ({{APM_NAME}})\nTIMESERIES 1 minute\nSINCE 60 minutes ago"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": {
+              "isLabelVisible": true
+            },
+            "yAxisLeft": {
+              "zero": true
+            },
+            "yAxisRight": {
+              "zero": true
+            }
+          }
+        },
+        {
+          "title": "Error messages",
+          "layout": {
+            "column": 1,
+            "row": 21,
+            "width": 6,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.bar"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT count(*) FROM AwsLambdaInvocationError facet `error.message`,aws.lambda.functionName  WHERE aws.lambda.functionName in ({{Lambda_functionName}})"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "Errors",
+          "layout": {
+            "column": 7,
+            "row": 21,
+            "width": 6,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT sum(`aws.lambda.Errors.byFunction`) FROM Metric SINCE 1 hour ago UNTIL 6 minutes ago TIMESERIES AUTO FACET `aws.lambda.FunctionName`  WHERE aws.lambda.FunctionName in ({{Lambda_functionName}})"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": {
+              "isLabelVisible": true
+            },
+            "yAxisLeft": {
+              "zero": true
+            },
+            "yAxisRight": {
+              "zero": true
+            }
+          }
+        },
+        {
+          "title": "APM Azure Open AIのレイテンシー(ms)",
+          "layout": {
+            "column": 1,
+            "row": 24,
+            "width": 12,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT sum(apm.service.transaction.overview) as value FROM Metric WHERE appName IN ({{APM_NAME}}) AND (transactionName = 'WebTransaction/NormalizedUri/*') and metricTimesliceName like 'External%openai%' FACET `metricTimesliceName` LIMIT 7 SINCE 7 days ago TIMESERIES UNTIL now  "
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": {
+              "isLabelVisible": true
+            },
+            "yAxisLeft": {
+              "zero": true
+            },
+            "yAxisRight": {
+              "zero": true
+            }
+          }
+        },
+        {
+          "title": "APIエンドポイントごとのlatency",
+          "layout": {
+            "column": 1,
+            "row": 27,
+            "width": 12,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.table"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "FROM Transaction\nSELECT count(*) AS 'Requests', percentile(duration, 95) AS 'p95 (s)'\nWHERE appName IN ({{APM_NAME}})\n  AND transactionType = 'Web'\n  AND request.uri LIKE '/api/%'\nFACET request.method, request.uri\nSINCE 24 hours ago\nLIMIT 50"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": null,
+          "layout": {
+            "column": 1,
+            "row": 30,
+            "width": 12,
+            "height": 1
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.markdown"
+          },
+          "rawConfiguration": {
+            "text": "## Browser"
+          }
+        },
+        {
+          "title": "Page view 数",
+          "layout": {
+            "column": 1,
+            "row": 31,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.bar"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT count(*) FROM PageView FACET pageUrl SINCE 1 week ago LIMIT 25 where appName in ( {{BROWSER_NAME}} )"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "フロントエンドの500系と400系のエラー数",
+          "layout": {
+            "column": 5,
+            "row": 31,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "FROM AjaxRequest \nSELECT\n  filter(count(*), WHERE httpResponseCode >= 400 AND httpResponseCode < 500) AS '4xx',\n  filter(count(*), WHERE httpResponseCode >= 500 AND httpResponseCode < 600) AS '5xx'\nWHERE appName IN ({{BROWSER_NAME}}) and hostname = 'ishizawa.workspace.sst-test-production.com'\nTIMESERIES 1 minute\nSINCE 60 minutes ago"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": {
+              "isLabelVisible": true
+            },
+            "yAxisLeft": {
+              "zero": true
+            },
+            "yAxisRight": {
+              "zero": true
+            }
+          }
+        },
+        {
+          "title": "ページ全体のロード時間",
+          "layout": {
+            "column": 9,
+            "row": 31,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "FROM PageView\nSELECT percentile(duration, 95) AS 'Page load p95 (s)'\nWHERE appName IN ({{BROWSER_NAME}})\nTIMESERIES 1 minute\nSINCE 60 minutes ago"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": {
+              "isLabelVisible": true
+            },
+            "yAxisLeft": {
+              "zero": true
+            },
+            "yAxisRight": {
+              "zero": true
+            }
+          }
+        },
+        {
+          "title": "Page view load time(ページURL毎)",
+          "layout": {
+            "column": 1,
+            "row": 34,
+            "width": 6,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.area"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT average(duration) FROM PageView since 1 day ago FACET pageUrl TIMESERIES AUTO where appName in ( {{BROWSER_NAME}} )"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "Page view load time",
+          "layout": {
+            "column": 7,
+            "row": 34,
+            "width": 6,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.area"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT average(queueDuration) AS 'Request queueing', average(webAppDuration) AS 'Web application', average(networkDuration) AS 'Network duration', average(domProcessingDuration) AS 'DOM processing', average(pageRenderingDuration) AS 'Page rendering' FROM PageView WHERE appName IN ({{BROWSER_NAME}}) LIMIT 1000 SINCE 1800 seconds AGO TIMESERIES"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "JavaScript Error",
+          "layout": {
+            "column": 1,
+            "row": 37,
+            "width": 12,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.table"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT count(*) from JavaScriptError FACET errorMessage,pageUrl where appName in ( {{BROWSER_NAME}} ) "
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "",
+          "layout": {
+            "column": 1,
+            "row": 40,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.markdown"
+          },
+          "rawConfiguration": {
+            "text": "## ALB"
+          }
+        },
+        {
+          "title": "各ALBのlatency",
+          "layout": {
+            "column": 5,
+            "row": 40,
+            "width": 8,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "FROM Metric\nSELECT average(aws.applicationelb.TargetResponseTime) AS 'ALB target avg (s)'\nWHERE aws.applicationelb.LoadBalancer IN ({{ALB_NAME}})\nFACET aws.applicationelb.LoadBalancer\nTIMESERIES 5 minutes\nSINCE 24 hours ago"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": {
+              "isLabelVisible": true
+            },
+            "yAxisLeft": {
+              "zero": true
+            },
+            "yAxisRight": {
+              "zero": true
+            }
+          }
+        },
+        {
+          "title": null,
+          "layout": {
+            "column": 1,
+            "row": 43,
+            "width": 12,
+            "height": 1
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.markdown"
+          },
+          "rawConfiguration": {
+            "text": "## Lambda"
+          }
+        },
+        {
+          "title": "Average duration (seconds)",
+          "layout": {
+            "column": 1,
+            "row": 44,
+            "width": 6,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT average(`aws.lambda.Duration.byFunction`) / 1000 FROM Metric SINCE 1 hour ago UNTIL 6 minutes ago TIMESERIES AUTO FACET `aws.lambda.FunctionName` WHERE aws.lambda.FunctionName in ({{Lambda_functionName}}) "
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": {
+              "isLabelVisible": true
+            },
+            "yAxisLeft": {
+              "zero": true
+            },
+            "yAxisRight": {
+              "zero": true
+            }
+          }
+        },
+        {
+          "title": "Invocations",
+          "layout": {
+            "column": 7,
+            "row": 44,
+            "width": 6,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT sum(`aws.lambda.Invocations.byFunction`) FROM Metric SINCE 1 hour ago UNTIL 6 minutes ago TIMESERIES AUTO FACET `aws.lambda.FunctionName`  WHERE aws.lambda.FunctionName in ({{Lambda_functionName}})"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": {
+              "isLabelVisible": true
+            },
+            "yAxisLeft": {
+              "zero": true
+            },
+            "yAxisRight": {
+              "zero": true
+            }
+          }
+        },
+        {
+          "title": "Error Message",
+          "layout": {
+            "column": 1,
+            "row": 47,
+            "width": 6,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.bar"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT count(*) FROM AwsLambdaInvocationError facet `error.message`,aws.lambda.functionName  WHERE aws.lambda.functionName in ({{Lambda_functionName}})"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "Errors",
+          "layout": {
+            "column": 7,
+            "row": 47,
+            "width": 6,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT sum(`aws.lambda.Errors.byFunction`) FROM Metric SINCE 1 hour ago UNTIL 6 minutes ago TIMESERIES AUTO FACET `aws.lambda.FunctionName`  WHERE aws.lambda.FunctionName in ({{Lambda_functionName}})"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": {
+              "isLabelVisible": true
+            },
+            "yAxisLeft": {
+              "zero": true
+            },
+            "yAxisRight": {
+              "zero": true
+            }
+          }
+        },
+        {
+          "title": "キューを利用したECS TaskのCPU利用率",
+          "layout": {
+            "column": 1,
+            "row": 50,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "FROM ContainerSample\nSELECT max(cpuPercent / 2) * 100 AS 'CPU normalized %'\nWHERE ecsContainerName IN (\n  'sst-test-presighned-url-embedding-ecs-service-production',\n  'sst-test-presighned-url-create-google-file-ecs-service-production',\n  'sst-test-presighned-url-update-google-file-ecs-service-production'\n)\nFACET ecsContainerName\nTIMESERIES 30 minutes\nSINCE 7 days ago"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": {
+              "isLabelVisible": true
+            },
+            "yAxisLeft": {
+              "zero": true
+            },
+            "yAxisRight": {
+              "zero": true
+            }
+          }
+        },
+        {
+          "title": "1秒間にBFF側で処理できるクエリ数",
+          "layout": {
+            "column": 5,
+            "row": 50,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "FROM Transaction\nSELECT rate(count(*), 1 second) AS 'BFF QPS'\nWHERE appName = 'sst-test-presigned-url-production'\nTIMESERIES 1 minute\nWITH TIMEZONE 'Asia/Tokyo'"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": {
+              "isLabelVisible": true
+            },
+            "yAxisLeft": {
+              "zero": true
+            },
+            "yAxisRight": {
+              "zero": true
+            }
+          }
+        },
+        {
+          "title": "1秒間にアプリからのクエリをDB側で処理する数(DB QPS)",
+          "layout": {
+            "column": 9,
+            "row": 50,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "FROM Span\nSELECT count(*) / 60 AS 'QPS',\n       percentile(duration, 95) * 1000 AS 'p95 (ms)'\nWHERE category = 'datastore'\n  AND appName IN ({{APM_NAME}})\nFACET db.system, db.operation\nTIMESERIES 1 minute\nWITH TIMEZONE 'Asia/Tokyo'"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": {
+              "isLabelVisible": true
+            },
+            "yAxisLeft": {
+              "zero": true
+            },
+            "yAxisRight": {
+              "zero": true
+            }
+          }
+        },
+        {
+          "title": "Aurora クラスタ別 IOPS",
+          "layout": {
+            "column": 1,
+            "row": 53,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "FROM Metric\nSELECT average(aws.rds.VolumeReadIOPs.byDbCluster)/300  AS 'Read IOPS',\n       average(aws.rds.VolumeWriteIOPs.byDbCluster)/300 AS 'Write IOPS'\nWHERE `tags.sst:stage` = 'production'\nFACET aws.rds.DBClusterIdentifier\nTIMESERIES 5 minutes\nSINCE 24 hours ago\nWITH TIMEZONE 'Asia/Tokyo'"
+              }
+            ]
+          }
+        },
+        {
+          "title": "各DBインスタンスごとの平均 Read IOPS / Write IOPS",
+          "layout": {
+            "column": 5,
+            "row": 53,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "FROM Metric\nSELECT\n  average(aws.rds.ReadIOPS)  AS 'Read IOPS',\n  average(aws.rds.WriteIOPS) AS 'Write IOPS'\nWHERE `tags.sst:stage` = 'production'\n  AND aws.region = 'ap-northeast-1'\nFACET aws.rds.DBInstanceIdentifier\nTIMESERIES 1 minute\nSINCE 30 minutes ago\nWITH TIMEZONE 'Asia/Tokyo'\n"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": {
+              "isLabelVisible": true
+            },
+            "yAxisLeft": {
+              "zero": true
+            },
+            "yAxisRight": {
+              "zero": true
+            }
+          }
+        },
+        {
+          "title": "各DBインスタンスの「1分平均 読み/書きレイテンシ(ms)」の推移",
+          "layout": {
+            "column": 9,
+            "row": 53,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "FROM Metric\nSELECT\n  average(aws.rds.ReadLatency)*1000  AS 'Read Latency (ms)',\n  average(aws.rds.WriteLatency)*1000 AS 'Write Latency (ms)'\nWHERE `tags.sst:stage`='production' AND aws.region='ap-northeast-1'\nFACET aws.rds.DBInstanceIdentifier\nTIMESERIES 1 minute\nSINCE 30 minutes ago\nWITH TIMEZONE 'Asia/Tokyo'"
+              }
+            ]
+          }
+        },
+        {
+          "title": "各 SQS キューごとの 1分平均の取り出し可能な未処理メッセージ数と処理中のメッセージ数",
+          "layout": {
+            "column": 1,
+            "row": 56,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "FROM Metric\nSELECT\n  average(aws.sqs.ApproximateNumberOfMessagesVisible)    AS 'Visible (ready)',\n  average(aws.sqs.ApproximateNumberOfMessagesNotVisible) AS 'In-flight'\nWHERE `tags.sst:stage` = 'production' AND aws.region = 'ap-northeast-1'\nFACET aws.sqs.QueueName\nTIMESERIES 1 minute\nSINCE 2 hours ago\nWITH TIMEZONE 'Asia/Tokyo'"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": {
+              "isLabelVisible": true
+            },
+            "yAxisLeft": {
+              "zero": true
+            },
+            "yAxisRight": {
+              "zero": true
+            }
+          }
+        },
+        {
+          "title": "各 SQS キューごとの一日ごとの取り出し可能な未処理メッセージ数と受信済み（可視性タイムアウト中）で削除前のメッセージ数",
+          "layout": {
+            "column": 5,
+            "row": 56,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "FROM Metric\nSELECT\n  max(aws.sqs.ApproximateNumberOfMessagesVisible)    AS 'Visible peak',\n  max(aws.sqs.ApproximateNumberOfMessagesNotVisible) AS 'In-flight peak'\nWHERE `tags.sst:stage`='production' AND aws.region='ap-northeast-1'\nFACET aws.sqs.QueueName\nTIMESERIES 1 day\nSINCE 1 month ago"
+              }
+            ]
+          }
+        },
+        {
+          "title": "各キューの1分ごとの平均消費レート",
+          "layout": {
+            "column": 9,
+            "row": 56,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "FROM Metric\nSELECT rate(sum(aws.sqs.NumberOfMessagesSent), 1 minute)    AS 'Published (msg/s)',\n       rate(sum(aws.sqs.NumberOfMessagesDeleted), 1 minute) AS 'Consumed (msg/s)'\nWHERE `tags.sst:stage`='production' AND aws.region='ap-northeast-1'\nFACET aws.sqs.QueueName\nTIMESERIES 1 minute\nSINCE 2 hours ago\nWITH TIMEZONE 'Asia/Tokyo'"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": {
+              "isLabelVisible": true
+            },
+            "yAxisLeft": {
+              "zero": true
+            },
+            "yAxisRight": {
+              "zero": true
+            }
+          }
+        },
+        {
+          "title": "各キューの1日ごとの平均消費レート",
+          "layout": {
+            "column": 1,
+            "row": 59,
+            "width": 4,
+            "height": 3
+          },
+          "linkedEntityGuids": [],
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "FROM Metric\nSELECT rate(sum(aws.sqs.NumberOfMessagesSent), 1 minute)    AS 'Published (msg/s)',\n       rate(sum(aws.sqs.NumberOfMessagesDeleted), 1 minute) AS 'Consumed (msg/s)'\nWHERE `tags.sst:stage`='production' AND aws.region='ap-northeast-1'\nFACET aws.sqs.QueueName\nTIMESERIES 1 day\nSINCE 1 month ago\nWITH TIMEZONE 'Asia/Tokyo'"
               }
             ],
             "platformOptions": {
@@ -84,37 +1490,157 @@
   ],
   "variables": [
     {
-      "name": "latency",
+      "name": "APM_NAME",
       "items": null,
-      "defaultValues": [],
+      "defaultValues": [
+        {
+          "value": {
+            "string": "*"
+          }
+        }
+      ],
       "nrqlQuery": {
         "accountIds": [],
-        "query": "FROM Transaction\nSELECT average(duration) AS 'Latency (s)'\nWHERE entityGuid IN ('Njg5MzY4MHxJTkZSQXxOQXw4OTA1NTYyMTkzMzAyNjY3NDA0')\n  AND transactionType = 'Web'\nTIMESERIES 1 minute\nSINCE 60 minutes ago UNTIL now"
+        "query": "FROM Transaction SELECT uniques(appName) WHERE appName IS NOT NULL LIMIT MAX SINCE 1 MONTH AGO "
       },
       "options": {
         "ignoreTimeRange": true,
-        "excluded": false
+        "excluded": false,
+        "showApplyAction": true
       },
-      "title": "",
+      "title": "APM",
       "type": "NRQL",
-      "isMultiSelection": false,
+      "isMultiSelection": true,
       "replacementStrategy": "STRING"
     },
     {
-      "name": "duration",
+      "name": "BROWSER_NAME",
       "items": null,
-      "defaultValues": [],
+      "defaultValues": [
+        {
+          "value": {
+            "string": "sst-test-presigned-url-production"
+          }
+        }
+      ],
       "nrqlQuery": {
         "accountIds": [],
-        "query": "FROM Transaction SELECT count(*), percentile(duration, 95) FACET request.uri "
+        "query": "SELECT uniques(appName) FROM PageView SINCE 1 month ago"
       },
       "options": {
         "ignoreTimeRange": true,
-        "excluded": false
+        "excluded": false,
+        "showApplyAction": true
       },
-      "title": "",
+      "title": "Browser",
       "type": "NRQL",
-      "isMultiSelection": false,
+      "isMultiSelection": true,
+      "replacementStrategy": "STRING"
+    },
+    {
+      "name": "ALB_NAME",
+      "items": null,
+      "defaultValues": [
+        {
+          "value": {
+            "string": "*"
+          }
+        }
+      ],
+      "nrqlQuery": {
+        "accountIds": [],
+        "query": "SELECT uniques(aws.applicationelb.LoadBalancer) FROM Metric SINCE 1 month ago LIMIT max"
+      },
+      "options": {
+        "ignoreTimeRange": true,
+        "excluded": false,
+        "showApplyAction": true
+      },
+      "title": "ALB",
+      "type": "NRQL",
+      "isMultiSelection": true,
+      "replacementStrategy": "STRING"
+    },
+    {
+      "name": "CONTAINER_NAME",
+      "items": null,
+      "defaultValues": [
+        {
+          "value": {
+            "string": "sst-test-presigned-url-stream-service-production"
+          }
+        },
+        {
+          "value": {
+            "string": "sst-test-presigned-url-ws-service-production"
+          }
+        }
+      ],
+      "nrqlQuery": {
+        "accountIds": [],
+        "query": "SELECT uniques(ecsContainerName) from ContainerSample since 7 days ago limit max "
+      },
+      "options": {
+        "ignoreTimeRange": true,
+        "excluded": false,
+        "showApplyAction": true
+      },
+      "title": "Container",
+      "type": "NRQL",
+      "isMultiSelection": true,
+      "replacementStrategy": "STRING"
+    },
+    {
+      "name": "ECS_CLUSTER",
+      "items": null,
+      "defaultValues": [
+        {
+          "value": {
+            "string": "sst-test-presighned-url-ws-cluster-production"
+          }
+        },
+        {
+          "value": {
+            "string": "sst-test-presighned-url-stream-cluster-production"
+          }
+        }
+      ],
+      "nrqlQuery": {
+        "accountIds": [],
+        "query": "SELECT uniques(aws.ecs.containerinsights.ClusterName) FROM Metric SINCE 1 month ago LIMIT max "
+      },
+      "options": {
+        "ignoreTimeRange": true,
+        "excluded": false,
+        "showApplyAction": true
+      },
+      "title": "ECS Cluster",
+      "type": "NRQL",
+      "isMultiSelection": true,
+      "replacementStrategy": "STRING"
+    },
+    {
+      "name": "Lambda_functionName",
+      "items": null,
+      "defaultValues": [
+        {
+          "value": {
+            "string": "*"
+          }
+        }
+      ],
+      "nrqlQuery": {
+        "accountIds": [],
+        "query": "SELECT uniques(aws.lambda.functionName) FROM Metric where aws.lambda.functionName like 'satto%' SINCE 1 week ago LIMIT max "
+      },
+      "options": {
+        "ignoreTimeRange": true,
+        "excluded": false,
+        "showApplyAction": true
+      },
+      "title": "Lambda",
+      "type": "NRQL",
+      "isMultiSelection": true,
       "replacementStrategy": "STRING"
     }
   ]
