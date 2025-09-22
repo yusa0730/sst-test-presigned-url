@@ -24,6 +24,22 @@ import { infraConfigResources } from "../infra-config";
 
 console.log("======dashboard.ts start======");
 
+const STAGE: string = $app.stage
+
+function renderStringTemplates(s: string, stage: string): string {
+  let out = s;
+  out = out.replaceAll("${$app.stage}", stage);     // 名前等の置換
+  out = out.replaceAll("{{SST_STAGE}}", stage);     // 予備
+
+  // NRQL: `tags.sst:stage`='xxx' を実ステージへ
+  out = out.replace(/(`tags\.sst:stage`\s*=\s*')([^']*)(')/g,
+    (_m, p1, _val, p3) => `${p1}${stage}${p3}`);
+
+  // もし ':stage' というプレースホルダを使った場合の置換
+  out = out.replace(/(':stage')/g, `'${stage}'`);
+  return out;
+}
+
 // --- 1) ダッシュボード JSON の読み込み（CI/ローカル共通で動くやり方）
 const dashboardPath = path.resolve(process.cwd(), "infra", "newrelic", "dashboard.json");
 if (!fs.existsSync(dashboardPath)) {
@@ -31,17 +47,31 @@ if (!fs.existsSync(dashboardPath)) {
 }
 const raw = JSON.parse(fs.readFileSync(dashboardPath, "utf-8"));
 
-// --- 2) JSON 正規化: accountId/accountIds の上書き + guid だけ除去（idは残す！）
-function massageWithId(obj: any, ACCOUNT_ID: number): any {
+// --- 2) JSON 正規化: accountId/accountIds の上書き + guid だけ除去（idは残す！）+ 文字列テンプレ反映
+function massageWithId(obj: any, ACCOUNT_ID: number, stage: string): any {
   function walk(o: any): any {
     if (Array.isArray(o)) return o.map(walk);
     if (o && typeof o === "object") {
       const out: any = {};
       for (const [k, v] of Object.entries(o)) {
-        // ❌ 以前: (k === "guid" || k === "id") → visualization.id まで消えていた
-        if (k === "guid") continue;                 // ← guid のみ除外
-        if (k === "accountId") { out[k] = ACCOUNT_ID; continue; }
-        if (k === "accountIds") { out[k] = [ACCOUNT_ID]; continue; }
+        // guid は除去、id は残す（visualization.id を壊さない）
+        if (k === "guid") continue;
+
+        if (k === "accountId") {
+          out[k] = ACCOUNT_ID;
+          continue;
+        }
+        if (k === "accountIds") {
+          out[k] = [ACCOUNT_ID];
+          continue;
+        }
+
+        // 文字列ならテンプレ置換（name や nrqlQueries[].query など）
+        if (typeof v === "string") {
+          out[k] = renderStringTemplates(v, stage);
+          continue;
+        }
+
         out[k] = walk(v);
       }
       return out;
@@ -57,9 +87,36 @@ function massageWithId(obj: any, ACCOUNT_ID: number): any {
       if (v?.nrqlQuery && typeof v.nrqlQuery === "object") {
         v.nrqlQuery.accountIds = [ACCOUNT_ID];
         if ("accountId" in v.nrqlQuery) v.nrqlQuery.accountId = ACCOUNT_ID;
+
+        // 文字列クエリのテンプレ置換も念のため
+        if (typeof v.nrqlQuery.query === "string") {
+          v.nrqlQuery.query = renderStringTemplates(v.nrqlQuery.query, stage);
+        }
       }
     }
   }
+
+  // pages[].widgets[].rawConfiguration.nrqlQueries[].query の安全補正（念押し）
+  if (Array.isArray(first.pages)) {
+    for (const p of first.pages) {
+      if (Array.isArray(p.widgets)) {
+        for (const w of p.widgets) {
+          const rc = w?.rawConfiguration;
+          if (rc && Array.isArray(rc.nrqlQueries)) {
+            for (const q of rc.nrqlQueries) {
+              if (q && typeof q === "object") {
+                q.accountIds = [ACCOUNT_ID];
+                if (typeof q.query === "string") {
+                  q.query = renderStringTemplates(q.query, stage);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   return first;
 }
 
@@ -67,7 +124,7 @@ function massageWithId(obj: any, ACCOUNT_ID: number): any {
 const cleaned = infraConfigResources.newRelicAccountIdSecret.apply((id) => {
   const idNum = parseInt(String(id).trim().replace(/^["']|["']$/g, ""), 10);
   if (Number.isNaN(idNum)) throw new Error(`NEW_RELIC_ACCOUNT_ID must be a number. Got: ${id}`);
-  return massageWithId(raw, idNum);
+  return massageWithId(raw, idNum, STAGE);
 });
 
 console.log("===cleaned===", cleaned);
