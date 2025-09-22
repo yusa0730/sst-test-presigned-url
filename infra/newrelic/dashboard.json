@@ -1094,6 +1094,22 @@
           }
         },
         {
+          "title": null,
+          "layout": {
+            "column": 1,
+            "row": 43,
+            "width": 12,
+            "height": 1
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.markdown"
+          },
+          "rawConfiguration": {
+            "text": "## キューを利用したECS Task"
+          }
+        },
+        {
           "title": "キューを利用したECS TaskのCPU利用率",
           "layout": {
             "column": 1,
@@ -1185,6 +1201,22 @@
             "yAxisRight": {
               "zero": true
             }
+          }
+        },
+        {
+          "title": null,
+          "layout": {
+            "column": 1,
+            "row": 43,
+            "width": 12,
+            "height": 1
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.markdown"
+          },
+          "rawConfiguration": {
+            "text": "## DB"
           }
         },
         {
@@ -1321,6 +1353,22 @@
                 "query": "FROM Metric\nSELECT\n  average(aws.rds.ReadLatency)*1000  AS 'Read Latency (ms)',\n  average(aws.rds.WriteLatency)*1000 AS 'Write Latency (ms)'\nWHERE `tags.sst:stage`='${$app.stage}' AND aws.region='ap-northeast-1'\nFACET aws.rds.DBInstanceIdentifier\nTIMESERIES 1 minute\nSINCE 30 minutes ago\nWITH TIMEZONE 'Asia/Tokyo'"
               }
             ]
+          }
+        },
+        {
+          "title": null,
+          "layout": {
+            "column": 1,
+            "row": 43,
+            "width": 12,
+            "height": 1
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.markdown"
+          },
+          "rawConfiguration": {
+            "text": "## SQS"
           }
         },
         {
