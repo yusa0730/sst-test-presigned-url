@@ -1159,7 +1159,7 @@
         {
           "title": "1秒間にBFF側で処理できるクエリ数",
           "layout": {
-            "column": 5,
+            "column": 7,
             "row": 50,
             "width": 6,
             "height": 3
@@ -1290,7 +1290,7 @@
         {
           "title": "各DBインスタンスごとの平均 Read IOPS / Write IOPS",
           "layout": {
-            "column": 5,
+            "column": 1,
             "row": 54,
             "width": 6,
             "height": 3
