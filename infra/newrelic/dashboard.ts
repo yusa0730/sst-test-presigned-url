@@ -26,6 +26,20 @@ console.log("======dashboard.ts start======");
 
 const STAGE: string = $app.stage
 
+// --- 1) ダッシュボード JSON の読み込み（CI/ローカル共通で動くやり方）
+const dashboardPath = path.resolve(process.cwd(), "infra", "newrelic", "dashboard.json");
+if (!fs.existsSync(dashboardPath)) {
+  throw new Error(`dashboard.json not found at: ${dashboardPath}`);
+}
+const raw = JSON.parse(fs.readFileSync(dashboardPath, "utf-8"));
+
+// ステージ別のフロントエンド用ホスト名を返す
+function resolveFrontHost(stage: string): string {
+  return stage === "production"
+    ? "ishizawa.workspace.com"
+    : `ishizawa.workspace.sst-test-${stage}.com`;
+}
+
 function renderStringTemplates(s: string, stage: string): string {
   let out = s;
   out = out.replaceAll("${$app.stage}", stage);     // 名前等の置換
@@ -37,15 +51,11 @@ function renderStringTemplates(s: string, stage: string): string {
 
   // もし ':stage' というプレースホルダを使った場合の置換
   out = out.replace(/(':stage')/g, `'${stage}'`);
+
+  // フロント用ホスト名のプレースホルダ
+  out = out.replaceAll("${FRONT_HOST}", resolveFrontHost(stage));
   return out;
 }
-
-// --- 1) ダッシュボード JSON の読み込み（CI/ローカル共通で動くやり方）
-const dashboardPath = path.resolve(process.cwd(), "infra", "newrelic", "dashboard.json");
-if (!fs.existsSync(dashboardPath)) {
-  throw new Error(`dashboard.json not found at: ${dashboardPath}`);
-}
-const raw = JSON.parse(fs.readFileSync(dashboardPath, "utf-8"));
 
 // --- 2) JSON 正規化: accountId/accountIds の上書き + guid だけ除去（idは残す！）+ 文字列テンプレ反映
 function massageWithId(obj: any, ACCOUNT_ID: number, stage: string): any {
