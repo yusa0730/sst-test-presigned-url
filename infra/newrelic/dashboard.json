@@ -1114,7 +1114,7 @@
           "layout": {
             "column": 1,
             "row": 50,
-            "width": 4,
+            "width": 6,
             "height": 3
           },
           "linkedEntityGuids": [],
@@ -1161,7 +1161,7 @@
           "layout": {
             "column": 5,
             "row": 50,
-            "width": 4,
+            "width": 6,
             "height": 3
           },
           "linkedEntityGuids": [],
@@ -1223,8 +1223,8 @@
           "title": "1秒間にアプリからのクエリをDB側で処理する数(DB QPS)",
           "layout": {
             "column": 9,
-            "row": 51,
-            "width": 4,
+            "row": 53,
+            "width": 6,
             "height": 3
           },
           "linkedEntityGuids": [],
@@ -1271,7 +1271,7 @@
           "layout": {
             "column": 1,
             "row": 53,
-            "width": 4,
+            "width": 6,
             "height": 3
           },
           "linkedEntityGuids": null,
@@ -1291,8 +1291,8 @@
           "title": "各DBインスタンスごとの平均 Read IOPS / Write IOPS",
           "layout": {
             "column": 5,
-            "row": 53,
-            "width": 4,
+            "row": 54,
+            "width": 6,
             "height": 3
           },
           "linkedEntityGuids": [],
@@ -1338,8 +1338,8 @@
           "title": "各DBインスタンスの「1分平均 読み/書きレイテンシ(ms)」の推移",
           "layout": {
             "column": 9,
-            "row": 53,
-            "width": 4,
+            "row": 54,
+            "width": 6,
             "height": 3
           },
           "linkedEntityGuids": null,
