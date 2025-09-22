@@ -679,7 +679,7 @@
             "nrqlQueries": [
               {
                 "accountIds": [],
-                "query": "FROM AjaxRequest \nSELECT\n  filter(count(*), WHERE httpResponseCode >= 400 AND httpResponseCode < 500) AS '4xx',\n  filter(count(*), WHERE httpResponseCode >= 500 AND httpResponseCode < 600) AS '5xx'\nWHERE appName IN ({{BROWSER_NAME}}) and hostname = 'ishizawa.workspace.sst-test-${$app.stage}.com'\nTIMESERIES 1 minute\nSINCE 60 minutes ago"
+                "query": "FROM AjaxRequest \nSELECT\n  filter(count(*), WHERE httpResponseCode >= 400 AND httpResponseCode < 500) AS '4xx',\n  filter(count(*), WHERE httpResponseCode >= 500 AND httpResponseCode < 600) AS '5xx'\nWHERE appName IN ({{BROWSER_NAME}}) and hostname = '${FRONT_HOST}'\nTIMESERIES 1 minute\nSINCE 60 minutes ago"
               }
             ],
             "platformOptions": {
