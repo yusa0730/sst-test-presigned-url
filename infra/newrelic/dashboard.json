@@ -86,13 +86,13 @@
             "nrqlQueries": [
               {
                 "accountIds": [],
-                "query": "FROM ContainerSample\nSELECT uniqueCount(ecsTaskArn) AS 'Running ECS tasks'\nWHERE ecsClusterName IN ('sst-test-presighned-url-ws-cluster-production', 'sst-test-presighned-url-bff-stream-cluster-production')\nFACET ecsClusterName\nTIMESERIES 1 minute\nSINCE 60 minutes ago UNTIL now"
+                "query": "FROM ContainerSample\nSELECT uniqueCount(ecsTaskArn) AS 'Running ECS tasks'\nWHERE ecsClusterName IN ('sst-test-presighned-url-ws-cluster-${$app.stage}', 'sst-test-presighned-url-bff-stream-cluster-${$app.stage}')\nFACET ecsClusterName\nTIMESERIES 1 minute\nSINCE 60 minutes ago UNTIL now"
               }
             ]
           }
         },
         {
-          "title": "sst-test-presighned-url-stream-cluster-production task数と現在起動中のtask数",
+          "title": "sst-test-presighned-url-stream-cluster-${$app.stage} task数と現在起動中のtask数",
           "layout": {
             "column": 9,
             "row": 2,
@@ -107,7 +107,7 @@
             "nrqlQueries": [
               {
                 "accountIds": [],
-                "query": "FROM Metric\nSELECT\n  sum(aws.ecs.containerinsights.DesiredTaskCount) AS 'Desired',\n  sum(aws.ecs.containerinsights.RunningTaskCount) AS 'Running'\nWHERE aws.ecs.containerinsights.ClusterName = 'sst-test-presighned-url-stream-cluster-production'\n  AND aws.ecs.containerinsights.ServiceName IS NOT NULL\nTIMESERIES 1 minutes EXTRAPOLATE\nSINCE 60 minutes ago UNTIL now"
+                "query": "FROM Metric\nSELECT\n  sum(aws.ecs.containerinsights.DesiredTaskCount) AS 'Desired',\n  sum(aws.ecs.containerinsights.RunningTaskCount) AS 'Running'\nWHERE aws.ecs.containerinsights.ClusterName = 'sst-test-presighned-url-stream-cluster-${$app.stage}'\n  AND aws.ecs.containerinsights.ServiceName IS NOT NULL\nTIMESERIES 1 minutes EXTRAPOLATE\nSINCE 60 minutes ago UNTIL now"
               }
             ]
           }
@@ -128,7 +128,7 @@
             "nrqlQueries": [
               {
                 "accountIds": [],
-                "query": "FROM Metric\nSELECT\n  max(aws.ecs.containerinsights.ContainerMemoryUtilization) AS 'max %'\nWHERE `aws.ecs.containerinsights.ClusterName` IN (\n  'sst-test-presighned-url-stream-cluster-production',\n  'sst-test-presighned-url-ws-cluster-production'\n)\n  AND `aws.ecs.containerinsights.ServiceName` IS NOT NULL\nFACET `aws.ecs.containerinsights.ClusterName`, `aws.ecs.containerinsights.ServiceName`\nTIMESERIES 5 minutes\nSINCE 30 minutes ago UNTIL now"
+                "query": "FROM Metric\nSELECT\n  max(aws.ecs.containerinsights.ContainerMemoryUtilization) AS 'max %'\nWHERE `aws.ecs.containerinsights.ClusterName` IN (\n  'sst-test-presighned-url-stream-cluster-${$app.stage}',\n  'sst-test-presighned-url-ws-cluster-${$app.stage}'\n)\n  AND `aws.ecs.containerinsights.ServiceName` IS NOT NULL\nFACET `aws.ecs.containerinsights.ClusterName`, `aws.ecs.containerinsights.ServiceName`\nTIMESERIES 5 minutes\nSINCE 30 minutes ago UNTIL now"
               }
             ]
           }
@@ -359,7 +359,7 @@
             "nrqlQueries": [
               {
                 "accountIds": [],
-                "query": "FROM Transaction\nSELECT\n  filter(count(*), WHERE `http.statusCode` LIKE '4__') AS '4xx',\n  filter(count(*), WHERE `http.statusCode` LIKE '5__') AS '5xx'\nWHERE appName = 'st-test-presighned-url-production'\n  AND transactionType = 'Web'\nTIMESERIES 5 minutes\nSINCE 24 hours ago"
+                "query": "FROM Transaction\nSELECT\n  filter(count(*), WHERE `http.statusCode` LIKE '4__') AS '4xx',\n  filter(count(*), WHERE `http.statusCode` LIKE '5__') AS '5xx'\nWHERE appName = 'st-test-presighned-url-${$app.stage}'\n  AND transactionType = 'Web'\nTIMESERIES 5 minutes\nSINCE 24 hours ago"
               }
             ]
           }
@@ -679,7 +679,7 @@
             "nrqlQueries": [
               {
                 "accountIds": [],
-                "query": "FROM AjaxRequest \nSELECT\n  filter(count(*), WHERE httpResponseCode >= 400 AND httpResponseCode < 500) AS '4xx',\n  filter(count(*), WHERE httpResponseCode >= 500 AND httpResponseCode < 600) AS '5xx'\nWHERE appName IN ({{BROWSER_NAME}}) and hostname = 'ishizawa.workspace.sst-test-production.com'\nTIMESERIES 1 minute\nSINCE 60 minutes ago"
+                "query": "FROM AjaxRequest \nSELECT\n  filter(count(*), WHERE httpResponseCode >= 400 AND httpResponseCode < 500) AS '4xx',\n  filter(count(*), WHERE httpResponseCode >= 500 AND httpResponseCode < 600) AS '5xx'\nWHERE appName IN ({{BROWSER_NAME}}) and hostname = 'ishizawa.workspace.sst-test-${$app.stage}.com'\nTIMESERIES 1 minute\nSINCE 60 minutes ago"
               }
             ],
             "platformOptions": {
@@ -1123,7 +1123,7 @@
             "nrqlQueries": [
               {
                 "accountIds": [],
-                "query": "FROM ContainerSample\nSELECT max(cpuPercent / 2) * 100 AS 'CPU normalized %'\nWHERE ecsContainerName IN (\n  'sst-test-presighned-url-embedding-ecs-service-production',\n  'sst-test-presighned-url-create-google-file-ecs-service-production',\n  'sst-test-presighned-url-update-google-file-ecs-service-production'\n)\nFACET ecsContainerName\nTIMESERIES 30 minutes\nSINCE 7 days ago"
+                "query": "FROM ContainerSample\nSELECT max(cpuPercent / 2) * 100 AS 'CPU normalized %'\nWHERE ecsContainerName IN (\n  'sst-test-presighned-url-embedding-ecs-service-${$app.stage}',\n  'sst-test-presighned-url-create-google-file-ecs-service-${$app.stage}',\n  'sst-test-presighned-url-update-google-file-ecs-service-${$app.stage}'\n)\nFACET ecsContainerName\nTIMESERIES 30 minutes\nSINCE 7 days ago"
               }
             ],
             "platformOptions": {
@@ -1170,7 +1170,7 @@
             "nrqlQueries": [
               {
                 "accountIds": [],
-                "query": "FROM Transaction\nSELECT rate(count(*), 1 second) AS 'BFF QPS'\nWHERE appName = 'sst-test-presigned-url-production'\nTIMESERIES 1 minute\nWITH TIMEZONE 'Asia/Tokyo'"
+                "query": "FROM Transaction\nSELECT rate(count(*), 1 second) AS 'BFF QPS'\nWHERE appName = 'sst-test-presigned-url-${$app.stage}'\nTIMESERIES 1 minute\nWITH TIMEZONE 'Asia/Tokyo'"
               }
             ],
             "platformOptions": {
@@ -1250,7 +1250,7 @@
             "nrqlQueries": [
               {
                 "accountIds": [],
-                "query": "FROM Metric\nSELECT average(aws.rds.VolumeReadIOPs.byDbCluster)/300  AS 'Read IOPS',\n       average(aws.rds.VolumeWriteIOPs.byDbCluster)/300 AS 'Write IOPS'\nWHERE `tags.sst:stage` = 'production'\nFACET aws.rds.DBClusterIdentifier\nTIMESERIES 5 minutes\nSINCE 24 hours ago\nWITH TIMEZONE 'Asia/Tokyo'"
+                "query": "FROM Metric\nSELECT average(aws.rds.VolumeReadIOPs.byDbCluster)/300  AS 'Read IOPS',\n       average(aws.rds.VolumeWriteIOPs.byDbCluster)/300 AS 'Write IOPS'\nWHERE `tags.sst:stage` = '${$app.stage}'\nFACET aws.rds.DBClusterIdentifier\nTIMESERIES 5 minutes\nSINCE 24 hours ago\nWITH TIMEZONE 'Asia/Tokyo'"
               }
             ]
           }
@@ -1285,7 +1285,7 @@
             "nrqlQueries": [
               {
                 "accountIds": [],
-                "query": "FROM Metric\nSELECT\n  average(aws.rds.ReadIOPS)  AS 'Read IOPS',\n  average(aws.rds.WriteIOPS) AS 'Write IOPS'\nWHERE `tags.sst:stage` = 'production'\n  AND aws.region = 'ap-northeast-1'\nFACET aws.rds.DBInstanceIdentifier\nTIMESERIES 1 minute\nSINCE 30 minutes ago\nWITH TIMEZONE 'Asia/Tokyo'\n"
+                "query": "FROM Metric\nSELECT\n  average(aws.rds.ReadIOPS)  AS 'Read IOPS',\n  average(aws.rds.WriteIOPS) AS 'Write IOPS'\nWHERE `tags.sst:stage` = '${$app.stage}'\n  AND aws.region = 'ap-northeast-1'\nFACET aws.rds.DBInstanceIdentifier\nTIMESERIES 1 minute\nSINCE 30 minutes ago\nWITH TIMEZONE 'Asia/Tokyo'\n"
               }
             ],
             "platformOptions": {
@@ -1318,7 +1318,7 @@
             "nrqlQueries": [
               {
                 "accountIds": [],
-                "query": "FROM Metric\nSELECT\n  average(aws.rds.ReadLatency)*1000  AS 'Read Latency (ms)',\n  average(aws.rds.WriteLatency)*1000 AS 'Write Latency (ms)'\nWHERE `tags.sst:stage`='production' AND aws.region='ap-northeast-1'\nFACET aws.rds.DBInstanceIdentifier\nTIMESERIES 1 minute\nSINCE 30 minutes ago\nWITH TIMEZONE 'Asia/Tokyo'"
+                "query": "FROM Metric\nSELECT\n  average(aws.rds.ReadLatency)*1000  AS 'Read Latency (ms)',\n  average(aws.rds.WriteLatency)*1000 AS 'Write Latency (ms)'\nWHERE `tags.sst:stage`='${$app.stage}' AND aws.region='ap-northeast-1'\nFACET aws.rds.DBInstanceIdentifier\nTIMESERIES 1 minute\nSINCE 30 minutes ago\nWITH TIMEZONE 'Asia/Tokyo'"
               }
             ]
           }
@@ -1353,7 +1353,7 @@
             "nrqlQueries": [
               {
                 "accountIds": [],
-                "query": "FROM Metric\nSELECT\n  average(aws.sqs.ApproximateNumberOfMessagesVisible)    AS 'Visible (ready)',\n  average(aws.sqs.ApproximateNumberOfMessagesNotVisible) AS 'In-flight'\nWHERE `tags.sst:stage` = 'production' AND aws.region = 'ap-northeast-1'\nFACET aws.sqs.QueueName\nTIMESERIES 1 minute\nSINCE 2 hours ago\nWITH TIMEZONE 'Asia/Tokyo'"
+                "query": "FROM Metric\nSELECT\n  average(aws.sqs.ApproximateNumberOfMessagesVisible)    AS 'Visible (ready)',\n  average(aws.sqs.ApproximateNumberOfMessagesNotVisible) AS 'In-flight'\nWHERE `tags.sst:stage` = '${$app.stage}' AND aws.region = 'ap-northeast-1'\nFACET aws.sqs.QueueName\nTIMESERIES 1 minute\nSINCE 2 hours ago\nWITH TIMEZONE 'Asia/Tokyo'"
               }
             ],
             "platformOptions": {
@@ -1386,7 +1386,7 @@
             "nrqlQueries": [
               {
                 "accountIds": [],
-                "query": "FROM Metric\nSELECT\n  max(aws.sqs.ApproximateNumberOfMessagesVisible)    AS 'Visible peak',\n  max(aws.sqs.ApproximateNumberOfMessagesNotVisible) AS 'In-flight peak'\nWHERE `tags.sst:stage`='production' AND aws.region='ap-northeast-1'\nFACET aws.sqs.QueueName\nTIMESERIES 1 day\nSINCE 1 month ago"
+                "query": "FROM Metric\nSELECT\n  max(aws.sqs.ApproximateNumberOfMessagesVisible)    AS 'Visible peak',\n  max(aws.sqs.ApproximateNumberOfMessagesNotVisible) AS 'In-flight peak'\nWHERE `tags.sst:stage`='${$app.stage}' AND aws.region='ap-northeast-1'\nFACET aws.sqs.QueueName\nTIMESERIES 1 day\nSINCE 1 month ago"
               }
             ]
           }
@@ -1421,7 +1421,7 @@
             "nrqlQueries": [
               {
                 "accountIds": [],
-                "query": "FROM Metric\nSELECT rate(sum(aws.sqs.NumberOfMessagesSent), 1 minute)    AS 'Published (msg/s)',\n       rate(sum(aws.sqs.NumberOfMessagesDeleted), 1 minute) AS 'Consumed (msg/s)'\nWHERE `tags.sst:stage`='production' AND aws.region='ap-northeast-1'\nFACET aws.sqs.QueueName\nTIMESERIES 1 minute\nSINCE 2 hours ago\nWITH TIMEZONE 'Asia/Tokyo'"
+                "query": "FROM Metric\nSELECT rate(sum(aws.sqs.NumberOfMessagesSent), 1 minute)    AS 'Published (msg/s)',\n       rate(sum(aws.sqs.NumberOfMessagesDeleted), 1 minute) AS 'Consumed (msg/s)'\nWHERE `tags.sst:stage`='${$app.stage}' AND aws.region='ap-northeast-1'\nFACET aws.sqs.QueueName\nTIMESERIES 1 minute\nSINCE 2 hours ago\nWITH TIMEZONE 'Asia/Tokyo'"
               }
             ],
             "platformOptions": {
@@ -1468,7 +1468,7 @@
             "nrqlQueries": [
               {
                 "accountIds": [],
-                "query": "FROM Metric\nSELECT rate(sum(aws.sqs.NumberOfMessagesSent), 1 minute)    AS 'Published (msg/s)',\n       rate(sum(aws.sqs.NumberOfMessagesDeleted), 1 minute) AS 'Consumed (msg/s)'\nWHERE `tags.sst:stage`='production' AND aws.region='ap-northeast-1'\nFACET aws.sqs.QueueName\nTIMESERIES 1 day\nSINCE 1 month ago\nWITH TIMEZONE 'Asia/Tokyo'"
+                "query": "FROM Metric\nSELECT rate(sum(aws.sqs.NumberOfMessagesSent), 1 minute)    AS 'Published (msg/s)',\n       rate(sum(aws.sqs.NumberOfMessagesDeleted), 1 minute) AS 'Consumed (msg/s)'\nWHERE `tags.sst:stage`='${$app.stage}' AND aws.region='ap-northeast-1'\nFACET aws.sqs.QueueName\nTIMESERIES 1 day\nSINCE 1 month ago\nWITH TIMEZONE 'Asia/Tokyo'"
               }
             ],
             "platformOptions": {
@@ -1519,7 +1519,7 @@
       "defaultValues": [
         {
           "value": {
-            "string": "sst-test-presigned-url-production"
+            "string": "sst-test-presigned-url-${$app.stage}"
           }
         }
       ],
@@ -1567,12 +1567,12 @@
       "defaultValues": [
         {
           "value": {
-            "string": "sst-test-presigned-url-stream-service-production"
+            "string": "sst-test-presigned-url-stream-service-${$app.stage}"
           }
         },
         {
           "value": {
-            "string": "sst-test-presigned-url-ws-service-production"
+            "string": "sst-test-presigned-url-ws-service-${$app.stage}"
           }
         }
       ],
@@ -1596,12 +1596,12 @@
       "defaultValues": [
         {
           "value": {
-            "string": "sst-test-presighned-url-ws-cluster-production"
+            "string": "sst-test-presighned-url-ws-cluster-${$app.stage}"
           }
         },
         {
           "value": {
-            "string": "sst-test-presighned-url-stream-cluster-production"
+            "string": "sst-test-presighned-url-stream-cluster-${$app.stage}"
           }
         }
       ],
