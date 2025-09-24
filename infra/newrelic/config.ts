@@ -46,7 +46,15 @@ const slackChannel = new newrelic.NotificationChannel(
   }
 );
 
+const apmEntity = newrelic.getEntityOutput({
+  name: `sst-test-presigned-url-${$app.stage}`,
+  accountId: infraConfigResources.newRelicAccountIdSecret.apply(value => value),
+  domain: "APM",
+  type: "APPLICATION"
+});
+
 export const newrelicConfigResources = {
   slackWebhookDest,
-  slackChannel
+  slackChannel,
+  apmEntity
 };

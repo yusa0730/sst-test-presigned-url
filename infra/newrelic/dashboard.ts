@@ -21,6 +21,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { infraConfigResources } from "../infra-config";
+import { newrelicConfigResources } from "./config";
 
 console.log("======dashboard.ts start======");
 
@@ -55,6 +56,22 @@ function renderStringTemplates(s: string, stage: string): string {
   // フロント用ホスト名のプレースホルダ
   out = out.replaceAll("${FRONT_HOST}", resolveFrontHost(stage));
   return out;
+}
+
+// ADDED: `${APM_GUID}` を差し込むユーティリティ
+function injectApmGuid(obj: any, guid: string): any {
+  function walk(n: any): any {
+    if (Array.isArray(n)) return n.map(walk);
+    if (n && typeof n === "object") {
+      const out: any = {};
+      for (const [k, v] of Object.entries(n)) {
+        out[k] = typeof v === "string" ? v.replaceAll("${APM_GUID}", guid) : walk(v);
+      }
+      return out;
+    }
+    return n;
+  }
+  return walk(obj);
 }
 
 // --- 2) JSON 正規化: accountId/accountIds の上書き + guid だけ除去（idは残す！）+ 文字列テンプレ反映
@@ -131,10 +148,22 @@ function massageWithId(obj: any, ACCOUNT_ID: number, stage: string): any {
 }
 
 // --- 3) accountId の解決（SST Secret から Output<number> を使って安全に解決）
-const cleaned = infraConfigResources.newRelicAccountIdSecret.apply((id) => {
+// const cleaned = infraConfigResources.newRelicAccountIdSecret.apply((id) => {
+//   const idNum = parseInt(String(id).trim().replace(/^["']|["']$/g, ""), 10);
+//   if (Number.isNaN(idNum)) throw new Error(`NEW_RELIC_ACCOUNT_ID must be a number. Got: ${id}`);
+//   return massageWithId(raw, idNum, STAGE);
+// });
+
+// ✅ guid(Output<string>) だけを渡す
+const cleaned = $util.all([
+  infraConfigResources.newRelicAccountIdSecret,
+  newrelicConfigResources.apmEntity.guid
+]).apply(([id, apmGuid]) => {
   const idNum = parseInt(String(id).trim().replace(/^["']|["']$/g, ""), 10);
   if (Number.isNaN(idNum)) throw new Error(`NEW_RELIC_ACCOUNT_ID must be a number. Got: ${id}`);
-  return massageWithId(raw, idNum, STAGE);
+
+  const normalized = massageWithId(raw, idNum, STAGE);
+  return injectApmGuid(normalized, apmGuid); // ← string を渡せる
 });
 
 console.log("===cleaned===", cleaned);
