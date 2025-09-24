@@ -225,7 +225,7 @@
               },
               {
                 "accountIds": [],
-                "query": "SELECT sum(apm.service.error.count['count']) / count(apm.service.transaction.duration) AS 'All errors' FROM Metric WHERE (entity.guid = 'Njg3NDg0MnxBUE18QVBQTElDQVRJT058MTA4MTY3OTU1Mw') LIMIT MAX SINCE 1800 seconds AGO TIMESERIES "
+                "query": "SELECT sum(apm.service.error.count['count']) / count(apm.service.transaction.duration) AS 'All errors' FROM Metric WHERE (entity.guid = '${APM_GUID}') LIMIT MAX SINCE 1800 seconds AGO TIMESERIES "
               }
             ],
             "platformOptions": {
