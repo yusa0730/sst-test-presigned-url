@@ -64,7 +64,7 @@ export const albElb5xxCondition = new newrelic.NrqlAlertCondition(
     fillOption: "none",
     aggregationWindow: 300,            // 秒
     aggregationMethod: "event_timer",
-    aggregationTimer: 300,             // 秒
+    aggregationTimer: "300",             // 秒
     slideBy: 60,                       // 秒
   },
   { dependsOn: [alertPolicyResources.albErrorPolicy] }
@@ -98,7 +98,7 @@ export const albTarget5xx10Condition = new newrelic.NrqlAlertCondition(
     fillOption: "none",
     aggregationWindow: 300,
     aggregationMethod: "event_timer",
-    aggregationTimer: 300,
+    aggregationTimer: "300",
     slideBy: 60,
   },
   { dependsOn: [alertPolicyResources.albErrorPolicy] }

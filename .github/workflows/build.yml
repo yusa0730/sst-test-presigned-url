@@ -106,8 +106,8 @@ jobs:
       - name: Diff SST stage
         run: pnpm run diff --stage=$STAGE --print-logs
 
-      # - name: Remove (teardown)
-      #   run: pnpm run remove --stage=$STAGE
+      - name: Remove (teardown)
+        run: pnpm run remove --stage=$STAGE
       
-      - name: Deploy
-        run: pnpm run deploy --stage=$STAGE --print-logs
+      # - name: Deploy
+      #   run: pnpm run deploy --stage=$STAGE --print-logs
